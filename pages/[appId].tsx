@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react';
 import AppSetup from '../components/AppSetup';
 import Layout from '../components/Layout'
+import { getAllTasks } from '../utils/airtable-1'
 
 type SetupCompleteResult = {
     apiKey: string;
@@ -14,6 +15,7 @@ type SetupCompleteResult = {
  * page or the app itself (which gets some client information).
  * @returns 
  */
+
 const AppPage = () => {
     const router = useRouter()
     const { appId } = router.query
@@ -70,7 +72,7 @@ export async function getServerSideProps(context) {
   companyId = context.query.companyId
   console.log(`companyId: ${companyId}`)
 
-  console.log(`copilot key: ${process.env.COPILOT_API_KEY}`)
+  // console.log(`copilot key: ${process.env.COPILOT_API_KEY}`)
 
   if (clientId !== undefined) {
     const clientRes = await fetch(`https://api.copilot-staging.com/v1/client/${clientId}`, copilotGetReq)
@@ -90,6 +92,8 @@ export async function getServerSideProps(context) {
 
 
   // -------------AIRTABLE API -------------------
+
+  await getAllTasks(searchId)
 
 
 
