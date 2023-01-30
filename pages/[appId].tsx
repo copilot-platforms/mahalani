@@ -2,12 +2,17 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react';
 import AppSetup from '../components/AppSetup';
 import Layout from '../components/Layout'
-import { getAllTasks } from '../utils/airtable-1'
+import { getAirtableClient, getAllRecords } from '../utils/airtableUtils';
+import List from '../components/List';
 
 type SetupCompleteResult = {
     apiKey: string;
     baseId: string;
     tableId: string;
+}
+
+type AppPagePros = {
+    searchId: string;
 }
 
 /**
@@ -16,12 +21,22 @@ type SetupCompleteResult = {
  * @returns 
  */
 
-const AppPage = (props) => {
+const AppPage = ({ searchId }: AppPagePros) => {
     const router = useRouter()
     const { appId } = router.query
     const [appSetupData, setAppSetupData] = useState<SetupCompleteResult | null>(null);
+    const [tasks, setTasks] = useState<any>([]);
 
-    console.log(props.tasks)
+    const loadAppData = async () => {
+      const baseConstructor = getAirtableClient(appSetupData.apiKey, appSetupData.baseId);
+      const tableClient = baseConstructor(appSetupData.tableId)
+
+      const airtableRecords = await getAllRecords(tableClient, `{Relevant Client ID} = "${searchId}"`)
+      setTasks(airtableRecords.map((record) => ({
+        id: record.id,
+        name: record.fields.Name,
+      })));
+    };
 
     useEffect(() => {
         const setupData = window.localStorage.getItem(`setupData.${appId}`);
@@ -30,6 +45,14 @@ const AppPage = (props) => {
         }
     }, [appId]);
 
+    useEffect(() => {
+        if (!appSetupData) {
+            return;
+        }
+
+        loadAppData();
+    }, [appSetupData])
+
     const handleSetupComplete = (result: SetupCompleteResult) => {
         window.localStorage.setItem(`setupData.${appId}`, JSON.stringify(result))
         setAppSetupData(result);
@@ -37,7 +60,12 @@ const AppPage = (props) => {
     
     return (
         <Layout title="Home | Next.js + TypeScript Example">
-            {appSetupData && <div>This app is setup</div>}
+            {appSetupData && (
+              <div>
+                <div>This app is setup</div>
+                <List items={tasks} />
+              </div>
+            )}
             {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} /> }
         </Layout>
     );
@@ -91,18 +119,10 @@ export async function getServerSideProps(context) {
   }
 
   console.log(`searchId: ${searchId}`)
-
-
-  // -------------AIRTABLE API -------------------
-
-  const clientTasks = await getAllTasks(searchId)
-
-
-
   // -----------PROPS-----------------------------
   return {
     props: {
-      tasks: clientTasks
+      searchId,
     }
   }
 }

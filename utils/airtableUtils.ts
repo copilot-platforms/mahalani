@@ -1,4 +1,4 @@
-import Airtable, { Base } from 'airtable';
+import Airtable, { FieldSet, Table } from 'airtable';
 
 export type ApiBaseItem = {
     id: string;
@@ -34,4 +34,19 @@ export const listTables = async (apiKey: string, baseId: string): Promise<ApiTab
     });
     const data = await response.json();
     return data.tables;
+}
+
+export const getAllRecords = async (table: Table<FieldSet>, filterByFormula: string) => {
+    let allRecords = []
+
+    const records = await table.select({
+        maxRecords: 150,
+        // view: "Grid view",
+        filterByFormula,
+    }).eachPage(function page(records, fetchNextPage) {
+        allRecords = [...allRecords, ...records];
+        fetchNextPage();
+    })
+    return allRecords
+
 }
