@@ -49,7 +49,7 @@ export async function getServerSideProps(context) {
 
   // HEADERS
   const copilotGetReq = {
-    method: 'GET',
+    // method: 'GET',
     headers: {
       "X-API-KEY": process.env.COPILOT_API_KEY,
       "Content-Type": "application/json"
@@ -70,14 +70,18 @@ export async function getServerSideProps(context) {
   companyId = context.query.companyId
   console.log(`companyId: ${companyId}`)
 
+  console.log(`copilot key: ${process.env.COPILOT_API_KEY}`)
+
   if (clientId !== undefined) {
-    const clientRes = await fetch(`https://api-beta.joinportal.com/v1/client/${clientId}`, copilotGetReq)
+    const clientRes = await fetch(`https://api.copilot-staging.com/v1/client/${clientId}`, copilotGetReq)
+    
     const clientData = await clientRes.json()
-    searchId = `${clientData.givenName} ${clientData.familyName}`
+    console.log(`CLIENT DATA: ${clientData}`)
+    searchId = clientData.id
   } else if (companyId !== undefined) {
-    const companyRes = await fetch(`https://api-beta.joinportal.com/v1/company/${companyId}`, copilotGetReq)
-    const companyData = await companyRes.json()
-    searchId = companyData.name
+    const companyRes = await fetch(`https://api.copilot-staging.com/v1/company/${companyId}`, copilotGetReq)
+    // const companyData = await companyRes.json()
+    // searchId = companyData.name
   } else {
     console.log('No ID Found')
   }
@@ -92,7 +96,7 @@ export async function getServerSideProps(context) {
   // -----------PROPS-----------------------------
   return {
     props: {
-      searchId: searchId,
+      // searchId: searchId,
     }
   }
 }
