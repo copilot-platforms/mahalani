@@ -48,5 +48,9 @@ export const getAllRecords = async (table: Table<FieldSet>, filterByFormula: str
         fetchNextPage();
     })
     return allRecords
-
 }
+
+export const updateRecord = async (table: Table<FieldSet>, recordId: string, fields: FieldSet) => {
+    // do partial update on airtable record for provided fields
+    const record = await table.update(recordId, fields);
+};

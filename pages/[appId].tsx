@@ -5,12 +5,7 @@ import Layout from '../components/Layout';
 import { getAirtableClient, getAllRecords } from '../utils/airtableUtils';
 import TodoList from '../components/TodoList';
 import { ClientDataType, Task } from '../components/types';
-
-type SetupCompleteResult = {
-  apiKey: string;
-  baseId: string;
-  tableId: string;
-};
+import { AirtableContext, AirtableContextType } from '../utils/airtableContext';
 
 type AppPagePros = {
   clientData: ClientDataType;
@@ -26,7 +21,7 @@ const AppPage = ({ clientData }: AppPagePros) => {
   const searchId = clientData?.id ?? '';
   const router = useRouter();
   const { appId } = router.query;
-  const [appSetupData, setAppSetupData] = useState<SetupCompleteResult | null>(
+  const [appSetupData, setAppSetupData] = useState<AirtableContextType | null>(
     null,
   );
   const [tasks, setTasks] = useState<any>([]);
@@ -71,16 +66,18 @@ const AppPage = ({ clientData }: AppPagePros) => {
     loadAppData();
   }, [appSetupData]);
 
-  const handleSetupComplete = (result: SetupCompleteResult) => {
+  const handleSetupComplete = (result: AirtableContextType) => {
     window.localStorage.setItem(`setupData.${appId}`, JSON.stringify(result));
     setAppSetupData(result);
   };
 
   return (
-    <Layout title="Home | Next.js + TypeScript Example">
-      {appSetupData && <TodoList tasks={tasks} />}
-      {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
-    </Layout>
+    <AirtableContext.Provider value={appSetupData}>
+      <Layout title="Home | Next.js + TypeScript Example">
+        {appSetupData && <TodoList tasks={tasks} />}
+        {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
+      </Layout>
+    </AirtableContext.Provider>
   );
 };
 
