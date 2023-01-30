@@ -7,8 +7,14 @@ import { useEffect, useMemo, useState } from 'react';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 
+const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
+  [TaskStatus.Todo]: [],
+  [TaskStatus.InProgress]: [],
+  [TaskStatus.Done]: [],
+};
+
 const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
-  const [tasksByStatus, setTasksByStatus] = useState<Record<TaskStatus, Array<Task>>>({});
+  const [tasksByStatus, setTasksByStatus] = useState<Record<TaskStatus, Array<Task>>>(initialTasksByStatus);
 
   /**
    * This is a useEffect that filters the tasks by status.
