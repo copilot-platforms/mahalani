@@ -1,12 +1,20 @@
 export enum TaskStatus {
-  Todo = 'TODO',
-  InProgress = 'IN_PROGRESS',
-  Done = 'DONE',
+  Todo = 'Todo',
+  InProgress = 'In progress',
+  Done = 'Done',
 }
 
 export type Task = {
+  id?: string;
   title: string;
-  description: string;
   status: TaskStatus;
-  assigneeProfilePicture: string;
+  assignee?: ClientDataType;
+  description?: string;
+};
+
+export type ClientDataType = {
+  id: string;
+  givenName: string;
+  familyName: string;
+  email: string;
 };
