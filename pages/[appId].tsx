@@ -23,7 +23,7 @@ type AppPagePros = {
  */
 
 const AppPage = ({ clientData }: AppPagePros) => {
-  const { id: searchId } = clientData;
+  const searchId = clientData?.id ?? '';
   const router = useRouter();
   const { appId } = router.query;
   const [appSetupData, setAppSetupData] = useState<SetupCompleteResult | null>(
