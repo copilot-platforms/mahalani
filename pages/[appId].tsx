@@ -27,10 +27,6 @@ const DATA_REFRESH_TIMEOUT = 3000;
 const AppPage = ({ clientData }: AppPagePros) => {
   const searchId = clientData?.id ?? '';
   const router = useRouter();
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
-
   const { appId } = router.query;
   const [appSetupData, setAppSetupData] = useState<SetupCompleteResult | null>(
     null,
