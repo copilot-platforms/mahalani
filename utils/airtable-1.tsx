@@ -18,6 +18,11 @@ export const getAllTasks = async (id) => {
 
         records.forEach((record) => {
             console.log(record.fields)
+            tasksArr.push({
+                name: record.fields.Name,
+                
+            })
+            // tasksArr.push(record.fields[0])
         })
 
         fetchNextPage()

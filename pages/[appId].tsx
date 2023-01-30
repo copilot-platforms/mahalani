@@ -16,10 +16,12 @@ type SetupCompleteResult = {
  * @returns 
  */
 
-const AppPage = () => {
+const AppPage = (props) => {
     const router = useRouter()
     const { appId } = router.query
     const [appSetupData, setAppSetupData] = useState<SetupCompleteResult | null>(null);
+
+    console.log(props.tasks)
 
     useEffect(() => {
         const setupData = window.localStorage.getItem(`setupData.${appId}`);
@@ -93,14 +95,14 @@ export async function getServerSideProps(context) {
 
   // -------------AIRTABLE API -------------------
 
-  await getAllTasks(searchId)
+  const clientTasks = await getAllTasks(searchId)
 
 
 
   // -----------PROPS-----------------------------
   return {
     props: {
-      // searchId: searchId,
+      tasks: clientTasks
     }
   }
 }
