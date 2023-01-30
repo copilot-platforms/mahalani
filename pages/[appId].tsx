@@ -40,3 +40,60 @@ const AppPage = () => {
 }
 
 export default AppPage
+
+/* 
+-------------SERVER-------------------
+*/
+
+export async function getServerSideProps(context) {
+
+  // HEADERS
+  const copilotGetReq = {
+    method: 'GET',
+    headers: {
+      "X-API-KEY": process.env.COPILOT_API_KEY,
+      "Content-Type": "application/json"
+    }
+  }
+
+  let clientId
+  let companyId
+  let searchId
+
+  // -------------PORTAL API-------------------
+
+  // SET PORTAL CLIENT OR COMPANY ID FROM PARAMS
+
+  clientId = context.query.clientId
+  console.log(`clientId: ${clientId}`)
+
+  companyId = context.query.companyId
+  console.log(`companyId: ${companyId}`)
+
+  if (clientId !== undefined) {
+    const clientRes = await fetch(`https://api-beta.joinportal.com/v1/client/${clientId}`, copilotGetReq)
+    const clientData = await clientRes.json()
+    searchId = `${clientData.givenName} ${clientData.familyName}`
+  } else if (companyId !== undefined) {
+    const companyRes = await fetch(`https://api-beta.joinportal.com/v1/company/${companyId}`, copilotGetReq)
+    const companyData = await companyRes.json()
+    searchId = companyData.name
+  } else {
+    console.log('No ID Found')
+  }
+
+  console.log(`searchId: ${searchId}`)
+
+
+  // -------------AIRTABLE API -------------------
+
+
+
+  // -----------PROPS-----------------------------
+  return {
+    props: {
+      searchId: searchId,
+    }
+  }
+}
+
