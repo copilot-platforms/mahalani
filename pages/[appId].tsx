@@ -16,6 +16,8 @@ type AppPagePros = {
   clientData: ClientDataType;
 };
 
+const DATA_REFRESH_TIMEOUT = 3000;
+
 /**
  * This is the app page container where we can render the configuration
  * page or the app itself (which gets some client information).
@@ -25,6 +27,10 @@ type AppPagePros = {
 const AppPage = ({ clientData }: AppPagePros) => {
   const searchId = clientData?.id ?? '';
   const router = useRouter();
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
+
   const { appId } = router.query;
   const [appSetupData, setAppSetupData] = useState<SetupCompleteResult | null>(
     null,
@@ -68,7 +74,14 @@ const AppPage = ({ clientData }: AppPagePros) => {
       return;
     }
 
-    loadAppData();
+    const interval = setInterval(() => {
+      loadAppData();
+    }, DATA_REFRESH_TIMEOUT);
+
+    // when the component unmounts, clear the interval
+    return () => {
+      clearInterval(interval);
+    };
   }, [appSetupData]);
 
   const handleSetupComplete = (result: SetupCompleteResult) => {
