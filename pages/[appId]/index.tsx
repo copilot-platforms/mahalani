@@ -3,20 +3,20 @@ import Layout from '../../components/Layout';
 import { getAirtableClient, getAllRecords } from '../../utils/airtableUtils';
 import TodoList from '../../components/TodoList';
 import { ClientDataType, Task } from '../../components/types';
-import { AirtableContext, AirtableContextType } from '../../utils/airtableContext';
+import { AppContext, AppContextType } from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
 
 type AppPagePros = {
   clientData: ClientDataType;
   tasks: Array<Task>;
-  appSetupData: AirtableContextType;
+  appSetupData: AppContextType;
 };
 
 const DATA_REFRESH_TIMEOUT = 3000;
 
-const loadAppData = async (appData: AirtableContextType, clientData: ClientDataType) => {
+const loadAppData = async (appData: AppContextType, clientData: ClientDataType) => {
     const baseConstructor = getAirtableClient(
-        appData.apiKey,
+        appData.airtableApiKey,
         appData.baseId,
     );
     const tableClient = baseConstructor(appData.tableId);
@@ -69,11 +69,11 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     }, []);
 
   return (
-    <AirtableContext.Provider value={appSetupData}>
+    <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
         <TodoList tasks={taskLists} />
       </Layout>
-    </AirtableContext.Provider>
+    </AppContext.Provider>
   );
 };
 
@@ -84,28 +84,33 @@ export default AppPage;
 */
 
 export async function getServerSideProps(context) {
+
+  let appSetupData: AppContextType;
+
+  try {
+    appSetupData = await fetchConfig(context.query.appId); 
+  } catch (error) {
+    console.log('error fetching config', error);
+  }
+
   // HEADERS
   const copilotGetReq = {
     // method: 'GET',
     headers: {
-      'X-API-KEY': process.env.COPILOT_API_KEY,
+      'X-API-KEY': appSetupData.copilotApiKey,
       'Content-Type': 'application/json',
     },
   };
 
   let clientData;
 
-  // -------------PORTAL API-------------------
+  // -------------COPILOT API-------------------
 
-  // SET PORTAL CLIENT OR COMPANY ID FROM PARAMS
+  // SET COPILOT CLIENT OR COMPANY ID FROM PARAMS
 
   const clientId = context.query.clientId;
-  console.log(`clientId: ${clientId}`);
 
   const companyId = context.query.companyId;
-  console.log(`companyId: ${companyId}`);
-
-  // console.log(`copilot key: ${process.env.COPILOT_API_KEY}`)
 
   if (clientId !== undefined) {
     const clientRes = await fetch(
@@ -126,14 +131,12 @@ export async function getServerSideProps(context) {
     console.log('No ID Found');
   }
   
-  // -----------GET APP CONFIG AND DATA----------------
-  let appSetupData: AirtableContextType;
+  // -----------GET TASKS----------------
   let tasks: Array<Task> = [];
   try {
-    appSetupData = await fetchConfig(context.query.appId);
     tasks = await loadAppData(appSetupData, clientData);    
   } catch (error) {
-    console.log('error fetching config', error);
+    console.log('error fetching tasks', error);
   }
 
   // -----------PROPS-----------------------------

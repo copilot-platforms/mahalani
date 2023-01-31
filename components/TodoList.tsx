@@ -6,7 +6,7 @@ import { Task, TaskStatus } from './types';
 import { useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { AirtableContext } from '../utils/airtableContext';
+import { AppContext } from '../utils/appContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
@@ -18,10 +18,10 @@ const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
 };
 
 const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
-  const appSetupData = useContext(AirtableContext);
+  const appSetupData = useContext(AppContext);
   // Get the airtable rest client instance
   const airtableClient = getAirtableClient(
-    appSetupData.apiKey,
+    appSetupData.airtableApiKey,
     appSetupData.baseId,
   );
 

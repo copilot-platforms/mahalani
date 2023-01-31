@@ -12,7 +12,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { Task, TaskStatus } from './types';
-import { AirtableContext } from '../utils/airtableContext';
+import { AppContext } from '../utils/appContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
 import { useDrag } from 'react-dnd';
 

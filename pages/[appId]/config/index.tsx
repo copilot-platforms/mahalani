@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import AppSetup from '../../../components/AppSetup';
 import Layout from '../../../components/Layout';
-import { AirtableContext, AirtableContextType } from '../../../utils/airtableContext';
+import { AppContext, AppContextType } from '../../../utils/appContext';
 /**
  * This is the app page container where we can render the configuration
  * page or the app itself (which gets some client information).
@@ -12,7 +12,7 @@ import { AirtableContext, AirtableContextType } from '../../../utils/airtableCon
 const AppSetupPage = () => {
   const router = useRouter();
   const { appId } = router.query;
-  const [appSetupData, setAppSetupData] = useState<AirtableContextType | null>(
+  const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
     null,
   );
 
@@ -23,7 +23,7 @@ const AppSetupPage = () => {
     }
   }, [appId]);
 
-  const handleSetupComplete = (result: AirtableContextType) => {
+  const handleSetupComplete = (result: AppContextType) => {
     window.localStorage.setItem(`setupData.${appId}`, JSON.stringify(result));
     fetch(`/api/config`, {
       method: 'POST',
@@ -39,11 +39,11 @@ const AppSetupPage = () => {
   };
 
   return (
-    <AirtableContext.Provider value={appSetupData}>
+    <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
         {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
       </Layout>
-    </AirtableContext.Provider>
+    </AppContext.Provider>
   );
 };
 
