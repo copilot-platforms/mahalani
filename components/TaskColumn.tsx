@@ -10,6 +10,7 @@ const taskColumnStyle: React.CSSProperties = {
 type Props = {
   title: string;
   onDrop: (item: { taskId: string }) => void;
+  children: React.ReactNode;
 };
 
 /**
