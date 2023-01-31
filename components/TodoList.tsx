@@ -1,4 +1,4 @@
-import { Grid, IconButton, Typography } from '@mui/material';
+import { Divider, Grid, IconButton, Theme, Typography } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus, TodoListViewMode } from './types';
@@ -10,6 +10,7 @@ import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
 import { makeStyles } from '@mui/styles';
 import { TaskListToolbar } from './TaskListToolbar';
 import { FilerTodoListDialog } from './FilterTodoListDialog';
+import clsx from 'clsx';
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
 const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
@@ -18,11 +19,20 @@ const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
   [TaskStatus.Done]: [],
 };
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
+  },
+  listViewContainer: {
+    padding: '0 10px',
+    [theme.breakpoints.up('lg')]: {
+      padding: '0 200px',
+    },
+    [theme.breakpoints.up('xl')]: {
+      padding: '0 400px',
+    },
   },
 }));
 export const TodoListFilterContext = createContext<{
@@ -187,64 +197,78 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
   }, [searchFilter]);
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <TodoListFilterContext.Provider
-        value={{
-          filter: searchFilter,
-          setFilter: setSearchFilter,
-        }}
-      >
-        <FilerTodoListDialog
-          open={openFilterDialog}
-          onClose={() => {
-            setOpenFilterDialog(false);
+    <div>
+      <DndProvider backend={HTML5Backend}>
+        <TodoListFilterContext.Provider
+          value={{
+            filter: searchFilter,
+            setFilter: setSearchFilter,
           }}
-        />
-        <div className={classes.root}>
-          <TaskListToolbar
-            title={title}
-            onToggleViewClick={handleToggleView}
-            onFilterClick={() => {
-              setOpenFilterDialog(true);
+        >
+          <FilerTodoListDialog
+            open={openFilterDialog}
+            onClose={() => {
+              setOpenFilterDialog(false);
             }}
-            viewMode={listViewMode}
           />
-          <Grid container gap={2} justifyContent="center" height={1}>
-            {Object.entries(tasksByStatus).map(([status, tasks]) => (
-              <Grid item xs={12} md={isListViewMode ? 12 : 3} key={status}>
-                <TaskColumn
-                  viewMode={listViewMode}
-                  title={status}
-                  onDrop={(item) => {
-                    handleDropTaskCard(item, status as TaskStatus);
-                  }}
-                >
-                  {tasks.length === 0 && Boolean(searchFilter) && (
-                    <Typography variant="body2" color="textSecondary">
-                      No {status.toLowerCase()} tasks found
-                    </Typography>
-                  )}
-                  {tasks.map(({ title, assignee, description, status, id }) => (
-                    <TaskCard
-                      viewMode={listViewMode}
-                      key={title}
-                      title={title}
-                      assignee={assignee}
-                      description={description}
-                      status={status}
-                      id={id}
-                      onStatusChange={(newStatus: TaskStatus) =>
-                        handleStatusChanged(id, status, newStatus)
-                      }
-                    />
-                  ))}
-                </TaskColumn>
-              </Grid>
-            ))}
-          </Grid>
-        </div>
-      </TodoListFilterContext.Provider>
-    </DndProvider>
+          <div className={classes.root}>
+            <TaskListToolbar
+              title={title}
+              onToggleViewClick={handleToggleView}
+              onFilterClick={() => {
+                setOpenFilterDialog(true);
+              }}
+              viewMode={listViewMode}
+            />
+
+            <Grid
+              container
+              mt={2}
+              gap={2}
+              justifyContent="center"
+              height={1}
+              className={clsx({
+                [classes.listViewContainer]: isListViewMode,
+              })}
+            >
+              {Object.entries(tasksByStatus).map(([status, tasks]) => (
+                <Grid item xs={12} md={isListViewMode ? 12 : 3} key={status}>
+                  <TaskColumn
+                    viewMode={listViewMode}
+                    title={status}
+                    onDrop={(item) => {
+                      handleDropTaskCard(item, status as TaskStatus);
+                    }}
+                  >
+                    {tasks.length === 0 && Boolean(searchFilter) && (
+                      <Typography variant="body2" color="textSecondary">
+                        No {status.toLowerCase()} tasks found
+                      </Typography>
+                    )}
+                    {tasks.map(
+                      ({ title, assignee, description, status, id }) => (
+                        <TaskCard
+                          viewMode={listViewMode}
+                          key={title}
+                          title={title}
+                          assignee={assignee}
+                          description={description}
+                          status={status}
+                          id={id}
+                          onStatusChange={(newStatus: TaskStatus) =>
+                            handleStatusChanged(id, status, newStatus)
+                          }
+                        />
+                      ),
+                    )}
+                  </TaskColumn>
+                </Grid>
+              ))}
+            </Grid>
+          </div>
+        </TodoListFilterContext.Provider>
+      </DndProvider>
+    </div>
   );
 };
 

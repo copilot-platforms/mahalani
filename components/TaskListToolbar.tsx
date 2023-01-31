@@ -55,7 +55,7 @@ export const TaskListToolbar = ({
       <ButtonGroup>
         <IconButton
           disableRipple
-          disabled={viewMode === TodoListViewMode.Board}
+          disabled={viewMode === TodoListViewMode.List}
           onClick={onToggleViewClick}
         >
           <ListOutlinedIcon />
@@ -63,7 +63,7 @@ export const TaskListToolbar = ({
 
         <IconButton
           disableRipple
-          disabled={viewMode === TodoListViewMode.List}
+          disabled={viewMode === TodoListViewMode.Board}
           onClick={onToggleViewClick}
         >
           <ViewWeekOutlinedIcon />
