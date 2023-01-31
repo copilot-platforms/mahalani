@@ -130,7 +130,7 @@ const AppSetup = ({ onSetupComplete }) => {
     return (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column'}}>
             <input type="text" name="copilot-api-key" placeholder="What is your copilot api key?" onChange={(e) => setCopilotApiKey(e.target.value)} />
-            <input type="text" name="api-key" placeholder="What is your airtable api key?" onChange={(e) => setAirtableApiKey(e.target.value)} />
+            <input type="text" name="api-key" placeholder="What is your airtable access token?" onChange={(e) => setAirtableApiKey(e.target.value)} />
             <select onChange={e => setSelectedBaseId(e.target.value)}>
                 {airtableBases.map((base) => (
                     <option key={base.id} value={base.id}>{base.name}</option>
