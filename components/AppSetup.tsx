@@ -7,11 +7,18 @@ const AppSetup = ({ onSetupComplete }) => {
     const [tables, setTables] = useState<ApiTableItem[]>([]);
     const [selectedBaseId, setSelectedBaseId] = useState<string>('');
     const [selectedTableId, setSelectedTableId] = useState<string>('');
-    const [tableValidationError, setTableValidationError] = useState<string>('');
+    const [validationError, setValidationError] = useState<string>('');
 
     const loadBases = async () => {
         const bases = await listBases(airtableApiKey);
         console.info('bases', bases);
+        if (!bases) {
+            setValidationError("Invalid Airtable API key");
+            setAirtableBases([]);
+            return;
+        } else {
+            setValidationError("");
+        }
         if (bases.length > 0) {
             setSelectedBaseId(bases[0].id);
         }
@@ -21,6 +28,12 @@ const AppSetup = ({ onSetupComplete }) => {
     const loadTables = async () => {
         const tables = await listTables(airtableApiKey, selectedBaseId);
         console.info('tables', tables);
+        if (!tables || tables.length == 0) {
+            setValidationError("No tables found in this Airtable");
+            return;
+        } else {
+            setValidationError("");
+        }
         if (tables.length > 0) {
             setSelectedTableId(tables[0].id);
         }
@@ -97,7 +110,7 @@ const AppSetup = ({ onSetupComplete }) => {
             });
         }
         else {
-            setTableValidationError(errorMessage);
+            setValidationError(errorMessage);
         }
     };
 
@@ -115,7 +128,7 @@ const AppSetup = ({ onSetupComplete }) => {
                 ))}
             </select>
             <input type="submit" value="Submit" />
-            <div style={{color: 'red'}}>{tableValidationError}</div>
+            <div style={{color: 'red'}}>{validationError}</div>
         </form>
     )
 }
