@@ -32,24 +32,8 @@ const TaskCard = ({
   id,
   onStatusChange,
 }: TaskCardProps) => {
-  const appSetupData = React.useContext(AirtableContext);
-
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
-
-    const baseConstructor = getAirtableClient(
-      appSetupData.apiKey,
-      appSetupData.baseId,
-    );
-    const tableClient = baseConstructor(appSetupData.tableId);
-
-    try {
-      await updateRecord(tableClient, id, {
-        Status: event.target.value as TaskStatus,
-      });
-    } catch (ex) {
-      console.error('Error updating record', ex);
-    }
   };
 
   const cardDragRef = React.useRef<HTMLDivElement>(null);

@@ -3,12 +3,14 @@ import Layout from './Layout';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus } from './types';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { AirtableContext } from '../utils/airtableContext';
+import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
-
+type DroppedTaskCardData = { taskId: string };
 const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
   [TaskStatus.Todo]: [],
   [TaskStatus.InProgress]: [],
@@ -16,6 +18,13 @@ const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
 };
 
 const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
+  const appSetupData = useContext(AirtableContext);
+  // Get the airtable rest client instance
+  const airtableClient = getAirtableClient(
+    appSetupData.apiKey,
+    appSetupData.baseId,
+  );
+
   const [tasksByStatus, setTasksByStatus] =
     useState<Record<TaskStatus, Array<Task>>>(initialTasksByStatus);
 
@@ -39,7 +48,7 @@ const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
    * @param newStatus new status
    * @returns
    */
-  const handleStatusChanged = (
+  const handleStatusChanged = async (
     id: string,
     existingStatus: TaskStatus,
     newStatus: TaskStatus,
@@ -59,10 +68,26 @@ const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
     };
 
     setTasksByStatus(updatedTasks);
+
+    const tableClient = airtableClient(appSetupData.tableId);
+
+    try {
+      await updateRecord(tableClient, id, {
+        Status: newStatus,
+      });
+    } catch (ex) {
+      console.error('Error updating record', ex);
+    }
   };
 
+  /**
+   * When a task card is dropped, call handleStatusChanged to
+   * update the status of the task.
+   * @param param0
+   * @param newTaskStatus
+   */
   const handleDropTaskCard = (
-    { taskId }: { taskId: string },
+    { taskId }: DroppedTaskCardData,
     newTaskStatus: TaskStatus,
   ) => {
     const existingStatus = Object.keys(tasksByStatus).find((key) =>
