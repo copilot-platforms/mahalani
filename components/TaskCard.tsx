@@ -13,7 +13,11 @@ import {
 import { Task, TaskStatus } from './types';
 import { useDrag } from 'react-dnd';
 import { makeStyles } from '@mui/styles';
-import { MoreHoriz } from '@mui/icons-material';
+import {
+  SignalCellularAlt1Bar,
+  SignalCellularAlt2Bar,
+} from '@mui/icons-material';
+import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 
 type ChipColor =
   | 'primary'
@@ -40,6 +44,9 @@ const useStyles = makeStyles({
     width: '90px',
     height: '20px',
   },
+  menuPaper: {
+    border: '1px solid #E5E5E5',
+  },
 });
 interface TaskCardProps extends Task {
   onStatusChange: (status: TaskStatus) => void;
@@ -51,6 +58,18 @@ const StatusToColorMap = {
   [TaskStatus.Done]: 'success',
 };
 
+enum TaskPriority {
+  High = 'High',
+  Medium = 'Medium',
+  Low = 'Low',
+}
+
+const PriorityToComponentMap = {
+  High: <SignalCellularAltIcon />,
+  Medium: <SignalCellularAlt1Bar />,
+  Low: <SignalCellularAlt1Bar />,
+};
+
 /**
  * This component represents the task card.
  * @param title The title of the task
@@ -58,6 +77,7 @@ const StatusToColorMap = {
  */
 const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
   const classes = useStyles();
+  const [taskPriority, setTaskPriority] = React.useState('High');
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
   };
@@ -65,6 +85,10 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<HTMLDivElement | null>(
     null,
   );
+  const [taskCardMenu, setCardMenuAnchorEl] =
+    React.useState<HTMLDivElement | null>(null);
+
+  const priorityIconComponent = PriorityToComponentMap[taskPriority];
 
   const [{ opacity }, dragRef] = useDrag(
     () => ({
@@ -76,6 +100,10 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
     }),
     [],
   );
+
+  const openTaskCardMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setCardMenuAnchorEl(event.currentTarget);
+  };
   return (
     <Card
       variant="outlined"
@@ -90,9 +118,41 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
         classes={{ title: classes.cardTitle, root: classes.cardHeader }}
         title={title}
         action={
-          <IconButton>
-            <MoreHoriz />
-          </IconButton>
+          <>
+            <IconButton onClick={openTaskCardMenu}>
+              {priorityIconComponent}
+            </IconButton>
+            <Menu
+              elevation={0}
+              classes={{
+                paper: classes.menuPaper,
+              }}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 50,
+              }}
+              open={Boolean(taskCardMenu)}
+              anchorEl={taskCardMenu}
+              onClose={() => {
+                setCardMenuAnchorEl(null);
+              }}
+            >
+              {Object.entries(TaskPriority).map(([key, value]) => (
+                <MenuItem
+                  onClick={() => {
+                    setTaskPriority(value);
+                    setCardMenuAnchorEl(null);
+                  }}
+                >
+                  {value}
+                </MenuItem>
+              ))}
+            </Menu>
+          </>
         }
       />
       <CardContent>
@@ -106,6 +166,10 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
             }}
           />
           <Menu
+            elevation={0}
+            classes={{
+              paper: classes.menuPaper,
+            }}
             anchorEl={menuAnchorEl}
             open={Boolean(menuAnchorEl)}
             onClose={() => {
