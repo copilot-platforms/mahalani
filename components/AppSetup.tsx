@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { useSession, signIn, signOut } from "next-auth/react"
 import { listBases, ApiBaseItem, getAirtableClient, ApiTableItem, listTables } from "../utils/airtableUtils";
 
 const AppSetup = ({ onSetupComplete }) => {
+    const { data: session } = useSession()
+
     const [airtableApiKey, setAirtableApiKey] = useState('');
     const [airtableBases, setAirtableBases] = useState<ApiBaseItem[]>([]);
     const [tables, setTables] = useState<ApiTableItem[]>([]);
@@ -55,21 +58,32 @@ const AppSetup = ({ onSetupComplete }) => {
         });
     };
 
+    if (session) {
+        return (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+                <input type="text" name="api-key" placeholder="What is your air-table api key?" onChange={(e) => setAirtableApiKey(e.target.value)} />
+                <select onChange={e => setSelectedBaseId(e.target.value)}>
+                    {airtableBases.map((base) => (
+                        <option key={base.id} value={base.id}>{base.name}</option>
+                    ))}
+                </select>
+                <select onChange={e => setSelectedTableId(e.target.value)}>
+                    {tables.map((table) => (
+                        <option key={table.id} value={table.id}>{table.name}</option>
+                    ))}
+                </select>
+            </form>
+        )
+    }
+
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column'}}>
-            <input type="text" name="api-key" placeholder="What is your air-table api key?" onChange={(e) => setAirtableApiKey(e.target.value)} />
-            <select onChange={e => setSelectedBaseId(e.target.value)}>
-                {airtableBases.map((base) => (
-                    <option key={base.id} value={base.id}>{base.name}</option>
-                ))}
-            </select>
-            <select onChange={e => setSelectedTableId(e.target.value)}>
-                {tables.map((table) => (
-                    <option key={table.id} value={table.id}>{table.name}</option>
-                ))}
-            </select>
-        </form>
+        <>
+            Not signed in <br />
+            <button onClick={() => signIn()}>Sign in</button>
+        </>
     )
+
+
 }
 
 export default AppSetup;
