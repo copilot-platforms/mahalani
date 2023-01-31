@@ -3,6 +3,7 @@ import { listBases, ApiBaseItem, getAirtableClient, ApiTableItem, listTables } f
 
 const AppSetup = ({ onSetupComplete }) => {
     const [airtableApiKey, setAirtableApiKey] = useState('');
+    const [copilotApiKey, setCopilotApiKey] = useState('');
     const [airtableBases, setAirtableBases] = useState<ApiBaseItem[]>([]);
     const [tables, setTables] = useState<ApiTableItem[]>([]);
     const [selectedBaseId, setSelectedBaseId] = useState<string>('');
@@ -97,18 +98,25 @@ const AppSetup = ({ onSetupComplete }) => {
         }
         return errorMessage;
     }
+    const validateCopilotApiKey= () => {
+        if (copilotApiKey === "") {
+            return "No Copilot API Key entered";
+        }
+        return "";
+    }
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log('submitted form', airtableApiKey);
 
         const filteredTables = tables.filter((table) => table.id === selectedTableId);
-        const errorMessage = validateSelectedTable(filteredTables);
+        const errorMessage = validateSelectedTable(filteredTables) || validateCopilotApiKey();
         const selectedViewId = filteredTables[0].views[0].id;
 
         if (errorMessage === "") {
             onSetupComplete({
-                apiKey: airtableApiKey,
+                airtableApiKey: airtableApiKey,
+                copilotApiKey: copilotApiKey,
                 baseId: selectedBaseId,
                 tableId: selectedTableId,
                 viewId: selectedViewId,
@@ -121,7 +129,8 @@ const AppSetup = ({ onSetupComplete }) => {
 
     return (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column'}}>
-            <input type="text" name="api-key" placeholder="What is your air-table api key?" onChange={(e) => setAirtableApiKey(e.target.value)} />
+            <input type="text" name="copilot-api-key" placeholder="What is your copilot api key?" onChange={(e) => setCopilotApiKey(e.target.value)} />
+            <input type="text" name="api-key" placeholder="What is your airtable api key?" onChange={(e) => setAirtableApiKey(e.target.value)} />
             <select onChange={e => setSelectedBaseId(e.target.value)}>
                 {airtableBases.map((base) => (
                     <option key={base.id} value={base.id}>{base.name}</option>
