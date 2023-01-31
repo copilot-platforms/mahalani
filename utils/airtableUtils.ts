@@ -21,10 +21,17 @@ export type ApiTableField = {
     options?: ApiTableFieldOptions;
 }
 
+export type ApiTableView = {
+    id: string;
+    type: string;
+    name: string;
+}
+
 export type ApiTableItem = {
     id: string;
     name: string;
     fields: ApiTableField[];
+    views: ApiTableView[];
 };
 
 export const getAirtableClient = (apiKey: string, baseId: string) => {
@@ -53,12 +60,12 @@ export const listTables = async (apiKey: string, baseId: string): Promise<ApiTab
     return data.tables;
 }
 
-export const getAllRecords = async (table: Table<FieldSet>, filterByFormula: string) => {
+export const getAllRecords = async (table: Table<FieldSet>, viewId: string, filterByFormula: string) => {
     let allRecords = []
 
     const records = await table.select({
         maxRecords: 150,
-        // view: "Grid view",
+        view: viewId || "",
         filterByFormula,
     }).eachPage(function page(records, fetchNextPage) {
         allRecords = [...allRecords, ...records];
