@@ -59,14 +59,17 @@ const AppSetup = ({ onSetupComplete }) => {
         loadBases();
     }, [airtableApiKey]);
 
-    const validateSelectedTable = (filteredTables) => {
+    const validateSelectedTable = (filteredTables: ApiTableItem[]) => {
         let errorMessage = "";
         if (filteredTables.length > 0) {
             const selectedFields = filteredTables[0].fields;
             const nameFields = selectedFields.filter((field) => field.name.toLowerCase() == 'name');
             const clientIdFields = selectedFields.filter((field) => field.name.toLowerCase() == 'client id');
             const statusFields = selectedFields.filter((field) => field.name.toLowerCase() == 'status');
-            if (nameFields.length === 0) {
+            if (!filteredTables[0].views || filteredTables[0].views.length == 0 || !filteredTables[0].views[0].id ) {
+                errorMessage = "Selected table has no views";
+            }
+            else if (nameFields.length === 0) {
                 errorMessage = "Selected table has no field called 'Name'";
             } else if (clientIdFields.length === 0) {
                 errorMessage = "Selected table has no field called 'Client ID'";
@@ -101,12 +104,14 @@ const AppSetup = ({ onSetupComplete }) => {
 
         const filteredTables = tables.filter((table) => table.id === selectedTableId);
         const errorMessage = validateSelectedTable(filteredTables);
+        const selectedViewId = filteredTables[0].views[0].id;
 
         if (errorMessage === "") {
             onSetupComplete({
                 apiKey: airtableApiKey,
                 baseId: selectedBaseId,
                 tableId: selectedTableId,
+                viewId: selectedViewId,
             });
         }
         else {

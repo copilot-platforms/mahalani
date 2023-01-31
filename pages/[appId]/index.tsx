@@ -23,6 +23,7 @@ const loadAppData = async (appData: AirtableContextType, clientData: ClientDataT
 
     const airtableRecords = await getAllRecords(
         tableClient,
+        appData.viewId,
         `{Client ID} = "${clientData.id}"`,
     );
 
