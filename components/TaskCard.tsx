@@ -37,12 +37,13 @@ const useStyles = makeStyles({
     alignItems: 'center',
   },
   cardTitle: {
+    maxWidth: '80%',
     fontSize: '16px',
     fontWeight: 'bold',
   },
   progressChip: {
-    width: '90px',
-    height: '20px',
+    width: 'fit-content',
+    height: '16px',
   },
   menuPaper: {
     border: '1px solid #E5E5E5',
@@ -65,9 +66,9 @@ enum TaskPriority {
 }
 
 const PriorityToComponentMap = {
-  High: <SignalCellularAltIcon />,
-  Medium: <SignalCellularAlt1Bar />,
-  Low: <SignalCellularAlt1Bar />,
+  High: SignalCellularAltIcon,
+  Medium: SignalCellularAlt2Bar,
+  Low: SignalCellularAlt1Bar,
 };
 
 /**
@@ -77,6 +78,7 @@ const PriorityToComponentMap = {
  */
 const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
   const classes = useStyles();
+
   const [taskPriority, setTaskPriority] = React.useState('High');
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
@@ -88,7 +90,7 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
   const [taskCardMenu, setCardMenuAnchorEl] =
     React.useState<HTMLDivElement | null>(null);
 
-  const priorityIconComponent = PriorityToComponentMap[taskPriority];
+  const PriorityIconComponent = PriorityToComponentMap[taskPriority];
 
   const [{ opacity }, dragRef] = useDrag(
     () => ({
@@ -102,25 +104,28 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
   );
 
   const openTaskCardMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setCardMenuAnchorEl(event.currentTarget);
+    setCardMenuAnchorEl(event.currentTarget as any);
   };
+
   return (
     <Card
       variant="outlined"
       ref={dragRef}
-      style={{ opacity }}
       classes={{
         root: classes.card,
       }}
       component="div"
+      style={{
+        opacity: opacity,
+      }}
     >
       <CardHeader
         classes={{ title: classes.cardTitle, root: classes.cardHeader }}
         title={title}
         action={
           <>
-            <IconButton onClick={openTaskCardMenu}>
-              {priorityIconComponent}
+            <IconButton size="small" onClick={openTaskCardMenu}>
+              {<PriorityIconComponent style={{ fontSize: '16px' }} />}
             </IconButton>
             <Menu
               elevation={0}

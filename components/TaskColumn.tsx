@@ -29,9 +29,7 @@ const TaskColumn: React.FC<Props> = ({ children, title, onDrop }) => {
   const isActive = isOver && canDrop;
   let columnBorder = '#fff';
   if (isActive) {
-    columnBorder = '1px dashed lightgreen';
-  } else if (canDrop) {
-    columnBorder = '1px dashed gray';
+    columnBorder = '1px dashed lightgray';
   }
 
   return (
@@ -42,9 +40,10 @@ const TaskColumn: React.FC<Props> = ({ children, title, onDrop }) => {
         border: columnBorder,
         height: '100%',
         padding: '1rem',
+        borderRadius: '5px',
       }}
     >
-      <h2>{title}</h2>
+      <h3>{title}</h3>
       {children}
     </div>
   );

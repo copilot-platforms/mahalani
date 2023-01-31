@@ -65,7 +65,9 @@ const AppPage = ({ clientData }: AppPagePros) => {
       return;
     }
 
-    const interval = setInterval(() => {}, DATA_REFRESH_TIMEOUT);
+    const interval = setInterval(() => {
+      loadAppData();
+    }, DATA_REFRESH_TIMEOUT);
 
     // when the component unmounts, clear the interval
     return () => {
