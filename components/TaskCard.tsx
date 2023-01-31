@@ -36,8 +36,6 @@ const TaskCard = ({
     onStatusChange(event.target.value as TaskStatus);
   };
 
-  const cardDragRef = React.useRef<HTMLDivElement>(null);
-
   const [{ opacity }, dragRef] = useDrag(
     () => ({
       type: 'card',
@@ -49,13 +47,7 @@ const TaskCard = ({
     [],
   );
   return (
-    <Card
-      variant="outlined"
-      ref={cardDragRef}
-      style={{ opacity }}
-      component="div"
-      ref={dragRef}
-    >
+    <Card variant="outlined" ref={dragRef} style={{ opacity }} component="div">
       <CardHeader title={title} />
       <CardContent>
         <Stack spacing={2}>
