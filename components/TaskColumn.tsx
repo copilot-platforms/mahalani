@@ -1,12 +1,19 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { TodoListViewMode } from './types';
+import { makeStyles } from '@mui/styles';
 
-const taskColumnStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1rem',
-};
+const useStyles = makeStyles(() => ({
+  root: {
+    height: '100%',
+    padding: '1rem',
+    borderRadius: '5px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    backgroundColor: '#fafafa',
+  },
+}));
 
 type Props = {
   title: string;
@@ -19,6 +26,7 @@ type Props = {
  * @param title The title of the column e.g "Todo", "In progress", "Done"
  */
 const TaskColumn: React.FC<Props> = ({ children, title, onDrop, viewMode }) => {
+  const classes = useStyles();
   const [{ isOver, canDrop }, dropAreaRef] = useDrop({
     accept: 'card',
     drop: onDrop,
@@ -37,12 +45,9 @@ const TaskColumn: React.FC<Props> = ({ children, title, onDrop, viewMode }) => {
   return (
     <div
       ref={dropAreaRef}
+      className={classes.root}
       style={{
-        ...taskColumnStyle,
         border: columnBorder,
-        height: '100%',
-        padding: '1rem',
-        borderRadius: '5px',
       }}
     >
       <h3>{title}</h3>

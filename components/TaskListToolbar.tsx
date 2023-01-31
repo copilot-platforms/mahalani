@@ -1,21 +1,21 @@
-import { ButtonGroup, IconButton, Input, TextField } from '@mui/material';
+import { ButtonGroup, Divider, IconButton, Theme } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { TodoListViewMode } from './types';
 import ListOutlinedIcon from '@mui/icons-material/ListOutlined';
 import ViewWeekOutlinedIcon from '@mui/icons-material/ViewWeekOutlined';
 import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 import { FilterListOffOutlined } from '@mui/icons-material';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { TodoListFilterContext } from './TodoList';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
-    padding: '0 16px',
+    padding: theme.spacing(1, 2),
     display: 'flex',
     justifyContent: 'space-between',
     height: '40px',
     border: '1px solid #E5E5E5',
-    borderRadius: '4px',
+    borderRadius: theme.shape.borderRadius,
     alignItems: 'center',
     boxShadow: '0px 0px 24px rgba(0, 0, 0, 0.07)',
   },
@@ -36,11 +36,6 @@ export const TaskListToolbar = ({
 
   const todoListHasFilter = searchTerm && searchTerm.length > 0;
 
-  const IconComponent =
-    viewMode === TodoListViewMode.Board
-      ? ListOutlinedIcon
-      : ViewWeekOutlinedIcon;
-
   const FilterIconComponent = !todoListHasFilter
     ? FilterListOutlinedIcon
     : FilterListOffOutlined;
@@ -58,11 +53,25 @@ export const TaskListToolbar = ({
       <h3>{title}</h3>
 
       <ButtonGroup>
-        <IconButton onClick={onToggleViewClick}>
-          <IconComponent />
+        <IconButton
+          disableRipple
+          disabled={viewMode === TodoListViewMode.Board}
+          onClick={onToggleViewClick}
+        >
+          <ListOutlinedIcon />
         </IconButton>
 
-        <IconButton onClick={onFilterIconClick}>
+        <IconButton
+          disableRipple
+          disabled={viewMode === TodoListViewMode.List}
+          onClick={onToggleViewClick}
+        >
+          <ViewWeekOutlinedIcon />
+        </IconButton>
+
+        <Divider orientation="vertical" flexItem />
+
+        <IconButton disableRipple onClick={onFilterIconClick}>
           <FilterIconComponent />
         </IconButton>
       </ButtonGroup>

@@ -21,8 +21,8 @@ const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
 const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
-    justifyContent: 'center',
     flexDirection: 'column',
+    height: '100%',
   },
 }));
 export const TodoListFilterContext = createContext<{
@@ -151,7 +151,8 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
         setOpenFilterDialog(false);
       }
 
-      if (e.key === 's' && e.metaKey) {
+      if (e.key === 'f' && e.metaKey) {
+        e.preventDefault();
         setOpenFilterDialog(true);
       }
 
@@ -208,9 +209,9 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
             }}
             viewMode={listViewMode}
           />
-          <Grid container gap={0} justifyContent="center">
+          <Grid container gap={2} justifyContent="center" height={1}>
             {Object.entries(tasksByStatus).map(([status, tasks]) => (
-              <Grid item xs={12} md={isListViewMode ? 12 : 4} key={status}>
+              <Grid item xs={12} md={isListViewMode ? 12 : 3} key={status}>
                 <TaskColumn
                   viewMode={listViewMode}
                   title={status}
