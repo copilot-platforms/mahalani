@@ -5,9 +5,26 @@ export type ApiBaseItem = {
     name: string;
 }
 
+export type ApiTableFieldOption = {
+    id: string;
+    name: string;
+}
+
+export type ApiTableFieldOptions = {
+    choices: ApiTableFieldOption[];
+}
+
+export type ApiTableField = {
+    id: string;
+    type: string;
+    name: string;
+    options?: ApiTableFieldOptions;
+}
+
 export type ApiTableItem = {
     id: string;
     name: string;
+    fields: ApiTableField[];
 };
 
 export const getAirtableClient = (apiKey: string, baseId: string) => {
