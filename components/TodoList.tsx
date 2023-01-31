@@ -3,7 +3,7 @@ import Layout from './Layout';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus } from './types';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
