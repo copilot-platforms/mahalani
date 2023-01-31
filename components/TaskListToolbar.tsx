@@ -1,8 +1,13 @@
-import { IconButton, Input, TextField } from '@mui/material';
+import { ButtonGroup, IconButton, Input, TextField } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { TodoListViewMode } from './types';
 import ListOutlinedIcon from '@mui/icons-material/ListOutlined';
 import ViewWeekOutlinedIcon from '@mui/icons-material/ViewWeekOutlined';
+import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
+import { FilterListOffOutlined } from '@mui/icons-material';
+import { useContext, useEffect } from 'react';
+import { TodoListFilterContext } from './TodoList';
+
 const useStyles = makeStyles(() => ({
   root: {
     padding: '0 16px',
@@ -14,49 +19,53 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     boxShadow: '0px 0px 24px rgba(0, 0, 0, 0.07)',
   },
-  toolbarActions: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  inputRoot: {
-    '& .MuiOutlinedInput-input': {
-      padding: '2px 8px',
-      height: 28,
-    },
-  },
 }));
 export const TaskListToolbar = ({
-  onToggleView,
+  onToggleViewClick,
+  onFilterClick,
   title,
   viewMode,
 }: {
-  onToggleView: (ev: React.MouseEvent<HTMLButtonElement>) => void;
+  onToggleViewClick: (ev: React.MouseEvent<HTMLButtonElement>) => void;
+  onFilterClick: (ev: React.MouseEvent<HTMLButtonElement>) => void;
   title: string;
   viewMode: TodoListViewMode;
 }) => {
   const classes = useStyles();
+  const { filter: searchTerm, setFilter } = useContext(TodoListFilterContext);
+
+  const todoListHasFilter = searchTerm && searchTerm.length > 0;
+
   const IconComponent =
     viewMode === TodoListViewMode.Board
       ? ListOutlinedIcon
       : ViewWeekOutlinedIcon;
+
+  const FilterIconComponent = !todoListHasFilter
+    ? FilterListOutlinedIcon
+    : FilterListOffOutlined;
+
+  const onFilterIconClick = (ev: React.MouseEvent<HTMLButtonElement>) => {
+    if (todoListHasFilter) {
+      setFilter('');
+    } else {
+      onFilterClick(ev);
+    }
+  };
+
   return (
     <div className={classes.root}>
       <h3>{title}'s tasks</h3>
 
-      <div className={classes.toolbarActions}>
-        <TextField
-          placeholder="search"
-          variant="outlined"
-          size="small"
-          classes={{
-            root: classes.inputRoot,
-          }}
-        />
-
-        <IconButton onClick={onToggleView}>
+      <ButtonGroup>
+        <IconButton onClick={onToggleViewClick}>
           <IconComponent />
         </IconButton>
-      </div>
+
+        <IconButton onClick={onFilterIconClick}>
+          <FilterIconComponent />
+        </IconButton>
+      </ButtonGroup>
     </div>
   );
 };

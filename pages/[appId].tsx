@@ -65,14 +65,12 @@ const AppPage = ({ clientData }: AppPagePros) => {
       return;
     }
 
-    const interval = setInterval(() => {
-      loadAppData();
-    }, DATA_REFRESH_TIMEOUT);
+    loadAppData();
 
-    // when the component unmounts, clear the interval
-    return () => {
-      clearInterval(interval);
-    };
+    // // when the component unmounts, clear the interval
+    // return () => {
+    //   clearInterval(interval);
+    // };
   }, [appSetupData]);
 
   const handleSetupComplete = (result: AirtableContextType) => {

@@ -2,13 +2,14 @@ import { Grid, IconButton } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus, TodoListViewMode } from './types';
-import { useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AirtableContext } from '../utils/airtableContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
 import { makeStyles } from '@mui/styles';
 import { TaskListToolbar } from './TaskListToolbar';
+import { FilerTodoListDialog } from './FilterTodoListDialog';
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
 const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
@@ -24,6 +25,13 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
   },
 }));
+export const TodoListFilterContext = createContext<{
+  filter: string;
+  setFilter: (filter: string) => void;
+}>({
+  filter: '',
+  setFilter: () => {},
+});
 
 const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
   tasks,
@@ -124,43 +132,108 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     );
   };
 
+  const [openFilterDialog, setOpenFilterDialog] = useState(false);
+
+  /**
+   * Add event listeners for keyboard shortcuts.
+   * Escape key closes the filter dialog.
+   * Command + F opens the filter dialog.
+   * Command + B toggles to board view.
+   * Command + L toggles to list view.
+   */
+  useEffect(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        setOpenFilterDialog(false);
+      }
+
+      if (e.key === 'f' && e.metaKey) {
+        setOpenFilterDialog(true);
+      }
+
+      if (e.key === 'b' && e.metaKey) {
+        setListViewMode(TodoListViewMode.Board);
+      }
+
+      if (e.key === 'l' && e.metaKey) {
+        setListViewMode(TodoListViewMode.List);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('keydown', () => {});
+    };
+  }, []);
+
+  const [searchFilter, setSearchFilter] = useState('');
+
+  useEffect(() => {
+    // filter task by title
+    const filteredTasks = tasks.filter((task) =>
+      task.title.toLowerCase().includes(searchFilter.toLowerCase()),
+    );
+
+    setTasksByStatus(
+      TaskStatuses.reduce((acc, status) => {
+        acc[status] = filteredTasks.filter((task) => task.status === status);
+        return acc;
+      }, {} as Record<TaskStatus, Array<Task>>),
+    );
+  }, [searchFilter]);
+
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className={classes.root}>
-        <TaskListToolbar
-          title={title}
-          onToggleView={handleToggleView}
-          viewMode={listViewMode}
+      <TodoListFilterContext.Provider
+        value={{
+          filter: searchFilter,
+          setFilter: setSearchFilter,
+        }}
+      >
+        <FilerTodoListDialog
+          open={openFilterDialog}
+          onClose={() => {
+            setOpenFilterDialog(false);
+          }}
         />
-        <Grid container gap={0} justifyContent="center">
-          {Object.entries(tasksByStatus).map(([status, tasks]) => (
-            <Grid item xs={12} md={isListViewMode ? 12 : 4} key={status}>
-              <TaskColumn
-                viewMode={listViewMode}
-                title={status}
-                onDrop={(item) => {
-                  handleDropTaskCard(item, status as TaskStatus);
-                }}
-              >
-                {tasks.map(({ title, assignee, description, status, id }) => (
-                  <TaskCard
-                    viewMode={listViewMode}
-                    key={title}
-                    title={title}
-                    assignee={assignee}
-                    description={description}
-                    status={status}
-                    id={id}
-                    onStatusChange={(newStatus: TaskStatus) =>
-                      handleStatusChanged(id, status, newStatus)
-                    }
-                  />
-                ))}
-              </TaskColumn>
-            </Grid>
-          ))}
-        </Grid>
-      </div>
+        <div className={classes.root}>
+          <TaskListToolbar
+            title={title}
+            onToggleViewClick={handleToggleView}
+            onFilterClick={() => {
+              setOpenFilterDialog(true);
+            }}
+            viewMode={listViewMode}
+          />
+          <Grid container gap={0} justifyContent="center">
+            {Object.entries(tasksByStatus).map(([status, tasks]) => (
+              <Grid item xs={12} md={isListViewMode ? 12 : 4} key={status}>
+                <TaskColumn
+                  viewMode={listViewMode}
+                  title={status}
+                  onDrop={(item) => {
+                    handleDropTaskCard(item, status as TaskStatus);
+                  }}
+                >
+                  {tasks.map(({ title, assignee, description, status, id }) => (
+                    <TaskCard
+                      viewMode={listViewMode}
+                      key={title}
+                      title={title}
+                      assignee={assignee}
+                      description={description}
+                      status={status}
+                      id={id}
+                      onStatusChange={(newStatus: TaskStatus) =>
+                        handleStatusChanged(id, status, newStatus)
+                      }
+                    />
+                  ))}
+                </TaskColumn>
+              </Grid>
+            ))}
+          </Grid>
+        </div>
+      </TodoListFilterContext.Provider>
     </DndProvider>
   );
 };
