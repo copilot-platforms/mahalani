@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
+import { TodoListViewMode } from './types';
 
 const taskColumnStyle: React.CSSProperties = {
   display: 'flex',
@@ -9,6 +10,7 @@ const taskColumnStyle: React.CSSProperties = {
 
 type Props = {
   title: string;
+  viewMode: TodoListViewMode;
   onDrop: (item: { taskId: string }) => void;
 };
 
@@ -16,7 +18,7 @@ type Props = {
  * This component is used to wrap the task cards in a column.
  * @param title The title of the column e.g "Todo", "In progress", "Done"
  */
-const TaskColumn: React.FC<Props> = ({ children, title, onDrop }) => {
+const TaskColumn: React.FC<Props> = ({ children, title, onDrop, viewMode }) => {
   const [{ isOver, canDrop }, dropAreaRef] = useDrop({
     accept: 'card',
     drop: onDrop,

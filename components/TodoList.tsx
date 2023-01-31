@@ -1,14 +1,14 @@
-import { Card, Grid } from '@mui/material';
-import Layout from './Layout';
+import { Grid, IconButton } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
-import { Task, TaskStatus } from './types';
+import { Task, TaskStatus, TodoListViewMode } from './types';
 import { useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AirtableContext } from '../utils/airtableContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
-
+import { makeStyles } from '@mui/styles';
+import { TaskListToolbar } from './TaskListToolbar';
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
 const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
@@ -17,13 +17,30 @@ const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
   [TaskStatus.Done]: [],
 };
 
-const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
+const useStyles = makeStyles(() => ({
+  root: {
+    display: 'flex',
+    justifyContent: 'center',
+    flexDirection: 'column',
+  },
+}));
+
+const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
+  tasks,
+  title,
+}) => {
   const appSetupData = useContext(AirtableContext);
+  const classes = useStyles();
   // Get the airtable rest client instance
   const airtableClient = getAirtableClient(
     appSetupData.apiKey,
     appSetupData.baseId,
   );
+  const [listViewMode, setListViewMode] = useState<TodoListViewMode>(
+    TodoListViewMode.Board,
+  );
+
+  const isListViewMode = listViewMode === TodoListViewMode.List;
 
   const [tasksByStatus, setTasksByStatus] =
     useState<Record<TaskStatus, Array<Task>>>(initialTasksByStatus);
@@ -96,34 +113,54 @@ const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
     handleStatusChanged(taskId, existingStatus, newTaskStatus);
   };
 
+  /**
+   * Toggle between list and board view.
+   */
+  const handleToggleView = () => {
+    setListViewMode((prevView) =>
+      prevView === TodoListViewMode.Board
+        ? TodoListViewMode.List
+        : TodoListViewMode.Board,
+    );
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
-      <Grid container gap={1} spacing={0}>
-        {Object.entries(tasksByStatus).map(([status, tasks]) => (
-          <Grid item xs={3} key={status}>
-            <TaskColumn
-              title={status}
-              onDrop={(item) => {
-                handleDropTaskCard(item, status as TaskStatus);
-              }}
-            >
-              {tasks.map(({ title, assignee, description, status, id }) => (
-                <TaskCard
-                  key={title}
-                  title={title}
-                  assignee={assignee}
-                  description={description}
-                  status={status}
-                  id={id}
-                  onStatusChange={(newStatus: TaskStatus) =>
-                    handleStatusChanged(id, status, newStatus)
-                  }
-                />
-              ))}
-            </TaskColumn>
-          </Grid>
-        ))}
-      </Grid>
+      <div className={classes.root}>
+        <TaskListToolbar
+          title={title}
+          onToggleView={handleToggleView}
+          viewMode={listViewMode}
+        />
+        <Grid container gap={0} justifyContent="center">
+          {Object.entries(tasksByStatus).map(([status, tasks]) => (
+            <Grid item xs={12} md={isListViewMode ? 12 : 4} key={status}>
+              <TaskColumn
+                viewMode={listViewMode}
+                title={status}
+                onDrop={(item) => {
+                  handleDropTaskCard(item, status as TaskStatus);
+                }}
+              >
+                {tasks.map(({ title, assignee, description, status, id }) => (
+                  <TaskCard
+                    viewMode={listViewMode}
+                    key={title}
+                    title={title}
+                    assignee={assignee}
+                    description={description}
+                    status={status}
+                    id={id}
+                    onStatusChange={(newStatus: TaskStatus) =>
+                      handleStatusChanged(id, status, newStatus)
+                    }
+                  />
+                ))}
+              </TaskColumn>
+            </Grid>
+          ))}
+        </Grid>
+      </div>
     </DndProvider>
   );
 };

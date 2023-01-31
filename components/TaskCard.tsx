@@ -9,8 +9,9 @@ import {
   Chip,
   Menu,
   IconButton,
+  Typography,
 } from '@mui/material';
-import { Task, TaskStatus } from './types';
+import { Task, TaskStatus, TodoListViewMode } from './types';
 import { useDrag } from 'react-dnd';
 import { makeStyles } from '@mui/styles';
 import {
@@ -38,12 +39,11 @@ const useStyles = makeStyles({
   },
   cardTitle: {
     maxWidth: '80%',
-    fontSize: '16px',
+    fontSize: '12px',
     fontWeight: 'bold',
   },
   progressChip: {
     width: 'fit-content',
-    height: '16px',
   },
   menuPaper: {
     border: '1px solid #E5E5E5',
@@ -51,6 +51,7 @@ const useStyles = makeStyles({
 });
 interface TaskCardProps extends Task {
   onStatusChange: (status: TaskStatus) => void;
+  viewMode: TodoListViewMode;
 }
 
 const StatusToColorMap = {
@@ -76,8 +77,14 @@ const PriorityToComponentMap = {
  * @param title The title of the task
  * @param assigneeProfilePicture The profile picture of the assignee
  */
-const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
-  const classes = useStyles();
+const TaskCard = ({
+  title,
+  status,
+  id,
+  onStatusChange,
+  viewMode,
+}: TaskCardProps) => {
+  const classes = useStyles({ viewMode });
 
   const [taskPriority, setTaskPriority] = React.useState('High');
   const handleStatusChange = async (event: SelectChangeEvent) => {
@@ -120,8 +127,8 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
       }}
     >
       <CardHeader
-        classes={{ title: classes.cardTitle, root: classes.cardHeader }}
-        title={title}
+        classes={{ root: classes.cardHeader }}
+        title={<Typography fontSize={16}>{title}</Typography>}
         action={
           <>
             <IconButton size="small" onClick={openTaskCardMenu}>
@@ -163,6 +170,7 @@ const TaskCard = ({ title, status, id, onStatusChange }: TaskCardProps) => {
       <CardContent>
         <Stack>
           <Chip
+            size="small"
             color={StatusToColorMap[status] as ChipColor}
             label={status}
             classes={{ root: classes.progressChip }}

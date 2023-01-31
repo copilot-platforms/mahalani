@@ -18,3 +18,8 @@ export type ClientDataType = {
   familyName: string;
   email: string;
 };
+
+export enum TodoListViewMode {
+  Board = 'board',
+  List = 'list',
+}

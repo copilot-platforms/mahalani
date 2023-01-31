@@ -80,10 +80,12 @@ const AppPage = ({ clientData }: AppPagePros) => {
     setAppSetupData(result);
   };
 
+  const clientFullName = `${clientData?.familyName} ${clientData?.givenName}`;
+
   return (
     <AirtableContext.Provider value={appSetupData}>
-      <Layout title="Home | Next.js + TypeScript Example">
-        {appSetupData && <TodoList tasks={tasks} />}
+      <Layout title="Copilot - Todo list">
+        {appSetupData && <TodoList title={clientFullName} tasks={tasks} />}
         {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
       </Layout>
     </AirtableContext.Provider>
