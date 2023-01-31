@@ -83,7 +83,9 @@ const AppPage = ({ clientData }: AppPagePros) => {
   return (
     <AirtableContext.Provider value={appSetupData}>
       <Layout title="Copilot - Todo list">
-        {appSetupData && <TodoList title={clientFullName} tasks={tasks} />}
+        {appSetupData && (
+          <TodoList title={`${clientFullName}'s tasks`} tasks={tasks} />
+        )}
         {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
       </Layout>
     </AirtableContext.Provider>

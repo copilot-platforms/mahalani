@@ -55,7 +55,7 @@ export const TaskListToolbar = ({
 
   return (
     <div className={classes.root}>
-      <h3>{title}'s tasks</h3>
+      <h3>{title}</h3>
 
       <ButtonGroup>
         <IconButton onClick={onToggleViewClick}>
