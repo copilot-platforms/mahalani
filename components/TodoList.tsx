@@ -96,6 +96,14 @@ const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
     handleStatusChanged(taskId, existingStatus, newTaskStatus);
   };
 
+  if (tasks.length === 0) {
+    return (
+      <div>
+        You have no tasks assigned!
+      </div>
+    );
+  }
+
   return (
     <DndProvider backend={HTML5Backend}>
       <Grid container spacing={1}>
