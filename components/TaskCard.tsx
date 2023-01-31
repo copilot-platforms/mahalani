@@ -93,9 +93,8 @@ const TaskCard = ({
     onStatusChange(event.target.value as TaskStatus);
   };
 
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<HTMLDivElement | null>(
-    null,
-  );
+  const [menuAnchorEl, setMenuAnchorEl] =
+    React.useState<HTMLButtonElement | null>(null);
   const [taskCardMenu, setCardMenuAnchorEl] =
     React.useState<HTMLDivElement | null>(null);
 
