@@ -79,6 +79,8 @@ const AppSetup = ({ onSetupComplete }) => {
                         }
                 }
             }
+        } else {
+            errorMessage = "No table found"
         }
         return errorMessage;
     }
