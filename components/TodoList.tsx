@@ -98,9 +98,9 @@ const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <Grid container gap={1} spacing={0}>
+      <Grid container spacing={1}>
         {Object.entries(tasksByStatus).map(([status, tasks]) => (
-          <Grid item xs={3} key={status}>
+          <Grid item xs={4} key={status}>
             <TaskColumn
               title={status}
               onDrop={(item) => {
