@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
-import { useSession, signIn, signOut } from "next-auth/react"
-import { listBases, ApiBaseItem, getAirtableClient, ApiTableItem, listTables } from "../utils/airtableUtils";
+import { listBases, ApiBaseItem, ApiTableItem, listTables } from "../utils/airtableUtils";
 
 const AppSetup = ({ onSetupComplete }) => {
-    const { data: session } = useSession()
-
     const [airtableApiKey, setAirtableApiKey] = useState('');
     const [copilotApiKey, setCopilotApiKey] = useState('');
     const [airtableBases, setAirtableBases] = useState<ApiBaseItem[]>([]);
