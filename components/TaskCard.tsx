@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Chip,
   FormControl,
   InputLabel,
   Select,
@@ -15,6 +14,7 @@ import {
 import { Task, TaskStatus } from './types';
 import { AirtableContext } from '../utils/airtableContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
+import { useDrag } from 'react-dnd';
 
 interface TaskCardProps extends Task {
   onStatusChange: (status: TaskStatus) => void;
@@ -25,11 +25,16 @@ interface TaskCardProps extends Task {
  * @param title The title of the task
  * @param assigneeProfilePicture The profile picture of the assignee
  */
-const TaskCard = ({ title, assignee, status, id, onStatusChange }: TaskCardProps) => {
+const TaskCard = ({
+  title,
+  assignee,
+  status,
+  id,
+  onStatusChange,
+}: TaskCardProps) => {
   const appSetupData = React.useContext(AirtableContext);
 
   const handleStatusChange = async (event: SelectChangeEvent) => {
-    
     onStatusChange(event.target.value as TaskStatus);
 
     const baseConstructor = getAirtableClient(
@@ -39,14 +44,34 @@ const TaskCard = ({ title, assignee, status, id, onStatusChange }: TaskCardProps
     const tableClient = baseConstructor(appSetupData.tableId);
 
     try {
-     await updateRecord(tableClient, id, { Status: event.target.value as TaskStatus })
+      await updateRecord(tableClient, id, {
+        Status: event.target.value as TaskStatus,
+      });
     } catch (ex) {
       console.error('Error updating record', ex);
     }
-  }
-  
+  };
+
+  const cardDragRef = React.useRef<HTMLDivElement>(null);
+
+  const [{ opacity }, dragRef] = useDrag(
+    () => ({
+      type: 'card',
+      item: { taskId: id },
+      collect: (monitor) => ({
+        opacity: monitor.isDragging() ? 0.5 : 1,
+      }),
+    }),
+    [],
+  );
   return (
-    <Card variant="outlined">
+    <Card
+      variant="outlined"
+      ref={cardDragRef}
+      style={{ opacity }}
+      component="div"
+      ref={dragRef}
+    >
       <CardHeader title={title} />
       <CardContent>
         <Stack spacing={2}>
@@ -59,19 +84,21 @@ const TaskCard = ({ title, assignee, status, id, onStatusChange }: TaskCardProps
             {assignee.givenName} {assignee.familyName}
           </div>
           <FormControl>
-          <InputLabel id={`status-label-${id}`}>Status</InputLabel>
-          <Select
-            labelId={`status-label-${id}`}
-            id={`status-select-${id}`}
-            value={status}
-            label="Status"
-            onChange={handleStatusChange}
-          >
-            <MenuItem value={TaskStatus.Todo}>{TaskStatus.Todo}</MenuItem>
-            <MenuItem value={TaskStatus.InProgress}>{TaskStatus.InProgress}</MenuItem>
-            <MenuItem value={TaskStatus.Done}>{TaskStatus.Done}</MenuItem>
-          </Select>
-        </FormControl>
+            <InputLabel id={`status-label-${id}`}>Status</InputLabel>
+            <Select
+              labelId={`status-label-${id}`}
+              id={`status-select-${id}`}
+              value={status}
+              label="Status"
+              onChange={handleStatusChange}
+            >
+              <MenuItem value={TaskStatus.Todo}>{TaskStatus.Todo}</MenuItem>
+              <MenuItem value={TaskStatus.InProgress}>
+                {TaskStatus.InProgress}
+              </MenuItem>
+              <MenuItem value={TaskStatus.Done}>{TaskStatus.Done}</MenuItem>
+            </Select>
+          </FormControl>
         </Stack>
       </CardContent>
     </Card>
