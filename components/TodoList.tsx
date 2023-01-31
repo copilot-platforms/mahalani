@@ -9,7 +9,7 @@ import { AirtableContext } from '../utils/airtableContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
 import { makeStyles } from '@mui/styles';
 import { TaskListToolbar } from './TaskListToolbar';
-import { FilerTodoListDialog } from './FilterTodoListDialog';
+import { FilterTodoListDialog } from './FilterTodoListDialog';
 import clsx from 'clsx';
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -205,7 +205,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
             setFilter: setSearchFilter,
           }}
         >
-          <FilerTodoListDialog
+          <FilterTodoListDialog
             open={openFilterDialog}
             onClose={() => {
               setOpenFilterDialog(false);

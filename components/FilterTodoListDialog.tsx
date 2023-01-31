@@ -8,7 +8,7 @@ export interface FilerTodoListDialogProps {
   onClose: (value: string) => void;
 }
 
-export function FilerTodoListDialog(props: FilerTodoListDialogProps) {
+export function FilterTodoListDialog(props: FilerTodoListDialogProps) {
   const { onClose, open } = props;
   const { filter: searchFilter, setFilter } = React.useContext(
     TodoListFilterContext,
