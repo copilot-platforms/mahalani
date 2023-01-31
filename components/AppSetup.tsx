@@ -61,7 +61,10 @@ const AppSetup = ({ onSetupComplete }) => {
                 errorMessage = "Selected table has no field called 'Status'";
             } else {
                 const statusField = statusFields[0];
-                if (statusField.type !== 'singleSelect' || !statusField.options || !statusField.options.choices || statusField.options.choices.length === 0) {
+                if (statusField.type !== 'singleSelect' ||
+                    !statusField.options ||
+                    !statusField.options.choices ||
+                    statusField.options.choices.length === 0) {
                     errorMessage = "Status field needs to be single-select type";
                 } else {
                     const statusChoices = statusField.options.choices;
