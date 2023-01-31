@@ -18,6 +18,26 @@ export function FilerTodoListDialog(props: FilerTodoListDialogProps) {
     setFilter(val);
   };
 
+  /**
+   * handles the enter or escape keystrokes for the search input
+   * @param ev : React.KeyboardEvent<HTMLInputElement>
+   */
+  const handleSearchKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    // when the user presses enter, persist the search val
+    // and close the dialog
+    if (ev.key === 'Enter') {
+      setFilter(searchFilter);
+      onClose(searchFilter);
+    }
+
+    // when the user presses escape, clear the search val
+    // and close the dialog
+    if (ev.key === 'Escape') {
+      setFilter('');
+      onClose('');
+    }
+  };
+
   return (
     <Dialog onClose={onClose} open={open} hideBackdrop disablePortal>
       <TextField
@@ -27,15 +47,9 @@ export function FilerTodoListDialog(props: FilerTodoListDialogProps) {
         }}
         value={searchFilter}
         onChange={handleSearchChange}
-        onKeyDown={(ev) => {
-          // when the user presses enter, persist the search val
-          // and close the dialog
-          if (ev.key === 'Enter') {
-            setFilter(searchFilter);
-            onClose(searchFilter);
-          }
-        }}
+        onKeyDown={handleSearchKeyDown}
         autoFocus
+        helperText="Press enter to apply filter, escape to clear"
       />
     </Dialog>
   );

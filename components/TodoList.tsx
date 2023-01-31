@@ -1,4 +1,4 @@
-import { Grid, IconButton } from '@mui/material';
+import { Grid, IconButton, Typography } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus, TodoListViewMode } from './types';
@@ -82,6 +82,10 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     const newTasks = tasksByStatus[newStatus];
     const taskToMove = existingTasks.find((task) => task.id === id);
 
+    // if the status is the same, do nothing
+    if (existingStatus === newStatus) {
+      return;
+    }
     if (!taskToMove) {
       return;
     }
@@ -147,7 +151,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
         setOpenFilterDialog(false);
       }
 
-      if (e.key === 'f' && e.metaKey) {
+      if (e.key === 's' && e.metaKey) {
         setOpenFilterDialog(true);
       }
 
@@ -214,6 +218,11 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                     handleDropTaskCard(item, status as TaskStatus);
                   }}
                 >
+                  {tasks.length === 0 && Boolean(searchFilter) && (
+                    <Typography variant="body2" color="textSecondary">
+                      No {status.toLowerCase()} tasks found
+                    </Typography>
+                  )}
                   {tasks.map(({ title, assignee, description, status, id }) => (
                     <TaskCard
                       viewMode={listViewMode}
