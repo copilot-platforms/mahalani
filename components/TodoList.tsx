@@ -5,12 +5,13 @@ import { Task, TaskStatus, TodoListViewMode } from './types';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { AirtableContext } from '../utils/airtableContext';
+import { AppContext } from '../utils/appContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
 import { makeStyles } from '@mui/styles';
 import { TaskListToolbar } from './TaskListToolbar';
 import { FilterTodoListDialog } from './FilterTodoListDialog';
 import clsx from 'clsx';
+
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
 const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
@@ -47,17 +48,19 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
   tasks,
   title,
 }) => {
-  const appSetupData = useContext(AirtableContext);
+  const appSetupData = useContext(AppContext);
   const classes = useStyles();
   // Get the airtable rest client instance
   const airtableClient = getAirtableClient(
-    appSetupData.apiKey,
+    appSetupData.airtableApiKey,
     appSetupData.baseId,
   );
   const [listViewMode, setListViewMode] = useState<TodoListViewMode>(
     TodoListViewMode.Board,
   );
+  const [searchFilter, setSearchFilter] = useState('');
 
+  const [openFilterDialog, setOpenFilterDialog] = useState(false);
   const isListViewMode = listViewMode === TodoListViewMode.List;
 
   const [tasksByStatus, setTasksByStatus] =
@@ -146,8 +149,6 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     );
   };
 
-  const [openFilterDialog, setOpenFilterDialog] = useState(false);
-
   /**
    * Add event listeners for keyboard shortcuts.
    * Escape key closes the filter dialog.
@@ -180,8 +181,9 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     };
   }, []);
 
-  const [searchFilter, setSearchFilter] = useState('');
-
+  /**
+   * Filter the tasks by title using the searchFilter.
+   */
   useEffect(() => {
     // filter task by title
     const filteredTasks = tasks.filter((task) =>
@@ -195,6 +197,11 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
       }, {} as Record<TaskStatus, Array<Task>>),
     );
   }, [searchFilter]);
+
+  // when there is no task, show empty state
+  if (tasks.length === 0) {
+    return <div>You have no tasks assigned!</div>;
+  }
 
   return (
     <div>

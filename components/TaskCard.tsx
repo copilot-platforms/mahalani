@@ -10,7 +10,7 @@ import {
   Chip,
   CardContent,
 } from '@mui/material';
-import { Task, TaskStatus, TodoListViewMode } from './types';
+import { Task, TaskStatus } from './types';
 import { useDrag } from 'react-dnd';
 import { makeStyles } from '@mui/styles';
 import {
