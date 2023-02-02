@@ -13,26 +13,6 @@ import { authOptions } from './api/auth/[...nextauth]';
 const IndexPage = () => {
   const { data: session } = useSession();
 
-  /**
-   * when there is a session object with a valid email
-   * we know the user has logged in so we can create
-   * a appId, with that appId redirect the user to the config
-   * page where they can submit their airtable api key and other info
-   */
-  useEffect(() => {
-    if (!session) {
-      return;
-    }
-
-    if (session.user.email) {
-      // create app id
-      // redirect to config page
-      // window.location.href = '/config';
-      const appId = nanoid(10);
-      router.push(`/${appId}/config`);
-    }
-  }, [session]);
-
   return (
     <Layout>
       <Box display="flex" flexDirection="column" alignItems="center" mt={8}>
@@ -67,6 +47,11 @@ const IndexPage = () => {
 
 export async function getServerSideProps({ req, res }) {
   const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return {
+      props: {}, // will be passed to the page component as props
+    }
+  }
 
   try {
     const userEmail = session.user.email
@@ -86,8 +71,13 @@ export async function getServerSideProps({ req, res }) {
     console.error('error fetching user apps', ex)
   }
 
+  // no user app was found so we should create a new app id for the user and redirect them to the config page
+  const appId = nanoid(10);
   return {
-    props: {}, // will be passed to the page component as props
+    redirect: {
+      destination: `/${appId}/config`,
+      permanent: false,
+    },
   };
 }
 
