@@ -131,6 +131,9 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
             const statusFields = selectedFields.filter(
                 (field) => field.name.toLowerCase() == 'status',
             );
+            const priorityFields = selectedFields.filter(
+                (field) => field.name.toLowerCase() == 'priority',
+            );
             if (
                 !filteredTables[0].views ||
                 filteredTables[0].views.length == 0 ||
@@ -143,6 +146,16 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
                 errorMessage = "Selected table has no field called 'Client ID'";
             } else if (statusFields.length === 0) {
                 errorMessage = "Selected table has no field called 'Status'";
+            } else if (priorityFields.length > 0 &&
+                (priorityFields[0].type !== 'singleSelect' ||
+                    !priorityFields[0].options ||
+                    !priorityFields[0].options.choices ||
+                    priorityFields[0].options.choices.length !== 3 ||
+                    priorityFields[0].options.choices.filter((choice) => choice.name.toLowerCase() == 'high').length == 0 ||
+                    priorityFields[0].options.choices.filter((choice) => choice.name.toLowerCase() == 'medium').length == 0 ||
+                    priorityFields[0].options.choices.filter((choice) => choice.name.toLowerCase() == 'low').length == 0
+                )) {
+                errorMessage = "If you have a Priority field, it must be single-select type with exactly 3 options - called 'High', 'Medium', and 'Low'";
             } else {
                 const statusField = statusFields[0];
                 if (
