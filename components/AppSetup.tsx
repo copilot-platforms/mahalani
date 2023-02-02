@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     padding: 16,
-    width: ({ cardWidth }) => cardWidth,
+    width: ({ cardWidth }: { cardWidth: number }) => cardWidth,
     boxShadow: '0px 0px 24px rgba(0, 0, 0, 0.07)',
   },
   form: {
