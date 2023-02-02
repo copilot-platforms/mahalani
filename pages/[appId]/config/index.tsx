@@ -1,4 +1,6 @@
 import { getServerSession } from 'next-auth';
+import { signOut } from "next-auth/react"
+
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import AppSetup from '../../../components/AppSetup';
@@ -6,6 +8,8 @@ import Layout from '../../../components/Layout';
 import { AppContext, AppContextType } from '../../../utils/appContext';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { fetchConfig } from '../../api/config/apiConfigUtils';
+import { Button } from '@mui/material';
+
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
@@ -49,6 +53,12 @@ const AppSetupPage = ({ appConfig }: AppSetupPageProps) => {
             <p>
               {`https://mahalani.vercel.app/${appId}`}
             </p>
+            <Button
+              onClick={() => signOut()}
+              color="primary"
+            >
+              Log Out
+            </Button>
           </div>
         )}
       </Layout>
@@ -58,6 +68,7 @@ const AppSetupPage = ({ appConfig }: AppSetupPageProps) => {
 
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
+  // console.log(`config session: ${session}`)
 
   if (!session) {
     return {
