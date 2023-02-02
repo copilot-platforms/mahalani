@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
 import AppSetup from '../../../components/AppSetup';
@@ -8,7 +9,7 @@ import { AppContext, AppContextType } from '../../../utils/appContext';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { fetchConfig } from '../../api/config/apiConfigUtils';
 import { AdminLayout } from '../../../components/AdminLayout';
-import { Typography, Box } from '@mui/material';
+import { Typography, Box, Button } from '@mui/material';
 
 
 type AppSetupPageProps = {
@@ -67,6 +68,14 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
                 <DataTable rows={myRows} />
               </React.Fragment>
             )}
+          </React.Fragment>
+          <React.Fragment>
+          <Button
+              onClick={() => signOut()}
+              color="primary"
+            >
+              Log Out
+            </Button>
           </React.Fragment>
         </AdminLayout>
       </Layout>
