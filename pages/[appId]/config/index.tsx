@@ -42,11 +42,9 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
     setAppSetupData(result);
   };
 
-/* Here we need to keep in mind that we name the param clientId or companyId based on default settings. For our test portal
-this will work, but for default companies portals we need to change param name to company. Also might be moot point because
-at the moment the company will not connect to custom app in the portal.
+/* Changes the param name in the URLs displayed after app setup is complete based on the default channel type
 */
-  const isCompany = false
+  const isCompany = false // <---- need to set this based on user input, hardcoded for now
   
   const setRowsForDefaultChannelType = () => {
     let paramName = 'clientId'
