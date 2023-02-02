@@ -1,4 +1,4 @@
-import { Divider, Grid, IconButton, Theme, Typography } from '@mui/material';
+import { Container, Box, Grid, IconButton, Theme, Typography } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus, TodoListViewMode } from './types';
@@ -200,7 +200,14 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
 
   // when there is no task, show empty state
   if (tasks.length === 0) {
-    return <div>You have no tasks assigned!</div>;
+    return (
+      <Container>
+        <Box mt={8}>
+          <Typography variant="h4" align="center">You have no tasks assigned!</Typography>
+          <Typography variant="subtitle1" align="center">Please come back later to check if new tasks have been assigned.</Typography>
+        </Box>
+      </Container>
+    );
   }
 
   return (

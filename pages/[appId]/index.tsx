@@ -7,7 +7,7 @@ import { AppContext, AppContextType } from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
 
 type AppPagePros = {
-  clientData: ClientDataType;
+  clientData: ClientDataType | null;
   tasks: Array<Task>;
   appSetupData: AppContextType;
 };
@@ -57,7 +57,7 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
   };
 
   useEffect(() => {
-    if (!appSetupData) {
+    if (!appSetupData || !clientData) {
       return;
     }
 
@@ -71,12 +71,13 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     };
   }, []);
 
-  const clientFullName = `${clientData.givenName} ${clientData.familyName}`;
+  const clientFullName = clientData ? `${clientData.givenName} ${clientData.familyName}` : '';
 
   return (
     <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
         <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
+
       </Layout>
     </AppContext.Provider>
   );
@@ -106,7 +107,7 @@ export async function getServerSideProps(context) {
     },
   };
 
-  let clientData;
+  let clientData = null;
 
   // -------------COPILOT API-------------------
 
