@@ -59,13 +59,11 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
           }
         >
           <React.Fragment>
-            {appSetupData && (
-              <AppSetup
-                onSetupComplete={handleSetupComplete}
-                appSetupData={appSetupData}
-                clientsRows={myRows}
-              />
-            )}
+            <AppSetup
+              onSetupComplete={handleSetupComplete}
+              appSetupData={appSetupData}
+              clientsRows={myRows}
+            />
           </React.Fragment>
         </AdminLayout>
       </Layout>
