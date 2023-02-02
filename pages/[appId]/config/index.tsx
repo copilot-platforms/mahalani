@@ -11,7 +11,7 @@ import { fetchConfig } from '../../api/config/apiConfigUtils';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
-  clients: any[];
+  clients: any[] | null;
 }
 
 /**
@@ -40,7 +40,7 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
     setAppSetupData(result);
   };
 
-  const myRows = clients.map((client) => ({
+  const myRows = (clients || []).map((client) => ({
     id: client.id,
     clientName: `${client.givenName} ${client.familyName}`,
     url: `https://mahalani.vercel.app/${appId}?clientId=${client.id}`
@@ -85,7 +85,7 @@ export async function getServerSideProps(context) {
 
   const { appId } = context.query
   let appConfig: AppContextType | null = null;
-  let clientData;
+  let clientData = null;
   try {
     appConfig = await fetchConfig(appId);
 
