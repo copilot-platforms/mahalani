@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { getAirtableClient, getAllRecords } from '../../utils/airtableUtils';
 import TodoList from '../../components/TodoList';
-import { ClientDataType, Task } from '../../components/types';
+import { AssigneeDataType, Task } from '../../components/types';
 import { AppContext, AppContextType } from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
 
 type AppPagePros = {
-  clientData: ClientDataType | null;
+  clientData: AssigneeDataType | null;
   tasks: Array<Task>;
   appSetupData: AppContextType;
 };
@@ -16,7 +16,7 @@ const DATA_REFRESH_TIMEOUT = 3000;
 
 const loadAppData = async (
   appData: AppContextType,
-  clientData: ClientDataType,
+  clientData: AssigneeDataType,
 ) => {
   const baseConstructor = getAirtableClient(
     appData.airtableApiKey,
@@ -37,9 +37,15 @@ const loadAppData = async (
     id: record.id,
     title: record.fields.Name,
     status: record.fields.Status,
-    assignee: clientData,
   }));
   return tasksList;
+};
+
+//validate if client or company
+const isCompany = (data: AssigneeDataType) => {
+  if (data.givenName) return false;
+
+  return true;
 };
 
 /**
@@ -71,12 +77,12 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     };
   }, []);
 
-  const clientFullName = clientData ? `${clientData.givenName} ${clientData.familyName}` : '';
+  const assigneeName = isCompany ? clientData.name : `${clientData.givenName} ${clientData.familyName}`;
 
   return (
     <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
-        <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
+        <TodoList title={`${assigneeName}'s tasks`} tasks={taskLists} />
 
       </Layout>
     </AppContext.Provider>
@@ -130,7 +136,7 @@ export async function getServerSideProps(context) {
       `https://api.copilot-staging.com/v1/company/${companyId}`,
       copilotGetReq,
     );
-    // const companyData = await companyRes.json()
+    clientData = await companyRes.json()
     // searchId = companyData.name
   } else {
     console.log('No ID Found');

@@ -8,15 +8,18 @@ export type Task = {
   id?: string;
   title: string;
   status: TaskStatus;
-  assignee?: ClientDataType;
+  assignee?: AssigneeDataType;
   description?: string;
 };
 
-export type ClientDataType = {
+export type AssigneeDataType = {
   id: string;
-  givenName: string;
-  familyName: string;
-  email: string;
+  givenName?: string;
+  familyName?: string;
+  email?: string;
+  name?: string;
+  avatarImageURL?: string;
+  fallbackColor?: string;
 };
 
 export enum TodoListViewMode {
