@@ -110,8 +110,20 @@ export async function getServerSideProps(context) {
       copilotGetReq,
     );
 
-    clientData = (await clientRes.json()).data;
-    console.log(clientData);
+    const companyRes = await fetch(
+      `https://api.copilot-staging.com/v1/company`,
+      copilotGetReq
+    )
+
+    const allCompanies = (await companyRes.json()).data;
+    const companyData = []
+    const companyList = await allCompanies.forEach((company) => {
+      company.name.length > 0 ? companyData.push(company): null
+    })
+    // console.log(`company list: ${JSON.stringify(companyData)}`)
+
+    clientData = (await clientRes.json()).data.concat(companyData);
+    console.log(`all data: ${clientData}`);
   } catch (ex) {
     console.error('error fetching user apps', ex);
   }
