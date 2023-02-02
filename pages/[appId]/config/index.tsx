@@ -9,7 +9,7 @@ import { fetchConfig } from '../../api/config/apiConfigUtils';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
-}
+};
 
 /**
  * This is the app page container where we can render the configuration
@@ -20,7 +20,7 @@ const AppSetupPage = ({ appConfig }: AppSetupPageProps) => {
   const router = useRouter();
   const { appId } = router.query;
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
-    appConfig
+    appConfig,
   );
 
   const handleSetupComplete = (result: AppContextType) => {
@@ -31,26 +31,19 @@ const AppSetupPage = ({ appConfig }: AppSetupPageProps) => {
       },
       body: JSON.stringify({
         id: appId,
-        ...result
+        ...result,
       }),
-    })
+    });
     setAppSetupData(result);
   };
 
   return (
     <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
-        {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
-        {appSetupData && (
-          <div>
-            <p>
-              Your app its setup, you can embed this in your Copilot dashboard using the following url:
-            </p>
-            <p>
-              {`https://mahalani.vercal.app/${appId}`}
-            </p>
-          </div>
-        )}
+        <AppSetup
+          onSetupComplete={handleSetupComplete}
+          appSetupData={appSetupData}
+        />
       </Layout>
     </AppContext.Provider>
   );
@@ -68,17 +61,17 @@ export async function getServerSideProps(context) {
     };
   }
 
-  const { appId } = context.query
+  const { appId } = context.query;
   let appConfig: AppContextType | null = null;
   try {
     appConfig = await fetchConfig(appId);
   } catch (ex) {
-    console.error('error fetching user apps', ex)
+    console.error('error fetching user apps', ex);
   }
 
   return {
     props: {
-      appConfig
+      appConfig,
     },
   };
 }

@@ -1,6 +1,7 @@
 import {
   Button,
   Card,
+  CardContent,
   CardHeader,
   CircularProgress,
   FormControl,
@@ -8,6 +9,8 @@ import {
   TextField,
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import {
   listBases,
@@ -20,6 +23,7 @@ import AppSetupStepper from './SetupSteps';
 enum SetupSteps {
   ProvideApiKeys = 0,
   SelectData = 1,
+  GoToApp = 2,
 }
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -33,16 +37,24 @@ const useStyles = makeStyles((theme) => ({
     width: 350,
     boxShadow: '0px 0px 24px rgba(0, 0, 0, 0.07)',
   },
-
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
   title: {
     justifyContent: 'center',
   },
 }));
 
-const steps = ['Provide API keys', 'Select your data'];
+const steps = ['Provide API keys', 'Select your data', 'Go to app'];
 
-const AppSetup = ({ onSetupComplete }) => {
-  const [activeStep, setActiveStep] = useState(SetupSteps.ProvideApiKeys);
+const AppSetup = ({ onSetupComplete, appSetupData }) => {
+  const appId = useRouter().query.appId as string;
+  const appLink = `https://mahalani.vercel.app/${appId}`;
+  const [activeStep, setActiveStep] = useState(
+    appSetupData ? SetupSteps.GoToApp : SetupSteps.ProvideApiKeys,
+  );
   const classes = useStyles();
   const [airtableApiKey, setAirtableApiKey] = useState('');
   const [copilotApiKey, setCopilotApiKey] = useState('');
@@ -93,9 +105,9 @@ const AppSetup = ({ onSetupComplete }) => {
     if (!selectedBaseId) {
       return;
     }
-
+    setActiveStep(SetupSteps.SelectData);
     loadTables();
-  }, [selectedBaseId, airtableApiKey]);
+  }, [selectedBaseId]);
 
   /**
    * listen for changes to the airtableApiKey
@@ -105,7 +117,6 @@ const AppSetup = ({ onSetupComplete }) => {
     if (!airtableApiKey) {
       return;
     }
-    setActiveStep(SetupSteps.SelectData);
 
     loadBases();
   }, [airtableApiKey]);
@@ -194,6 +205,7 @@ const AppSetup = ({ onSetupComplete }) => {
         tableId: selectedTableId,
         viewId: selectedViewId,
       });
+      setActiveStep(SetupSteps.GoToApp);
     } else {
       setValidationError(errorMessage);
     }
@@ -205,93 +217,103 @@ const AppSetup = ({ onSetupComplete }) => {
         <CardHeader
           title={<AppSetupStepper steps={steps} activeStep={activeStep} />}
         />
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-          }}
-        >
-          {activeStep === SetupSteps.ProvideApiKeys && (
+
+        <CardContent>
+          {appSetupData && (
             <>
-              <FormControl>
-                <TextField
-                  fullWidth
-                  type="text"
-                  name="copilot-api-key"
-                  placeholder="What is your copilot api key?"
-                  onChange={(e) => setCopilotApiKey(e.target.value)}
-                  size="small"
-                />
-              </FormControl>
-              <FormControl>
-                <TextField
-                  type="text"
-                  name="api-key"
-                  placeholder="What is your airtable access token?"
-                  onChange={(e) => setAirtableApiKey(e.target.value)}
-                  size="small"
-                />
-              </FormControl>
+              <p>
+                Your app its setup, you can embed this in your Copilot dashboard
+                using the following url:
+              </p>
+              <Link href={appLink}>{appLink}</Link>
             </>
           )}
 
-          {loadingInputState.loadingBases ||
-            (loadingInputState.loadingTables && (
-              <>
-                <Skeleton variant="rect" width="100%" height={40} />
-                <Skeleton variant="rect" width="100%" height={40} />
-              </>
-            ))}
+          {!appSetupData && (
+            <form onSubmit={handleSubmit} className={classes.form}>
+              {activeStep === SetupSteps.ProvideApiKeys && (
+                <>
+                  <FormControl>
+                    <TextField
+                      fullWidth
+                      type="text"
+                      name="copilot-api-key"
+                      placeholder="What is your copilot api key?"
+                      onChange={(e) => setCopilotApiKey(e.target.value)}
+                      size="small"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <TextField
+                      type="text"
+                      name="api-key"
+                      placeholder="What is your airtable access token?"
+                      onChange={(e) => setAirtableApiKey(e.target.value)}
+                      size="small"
+                    />
+                  </FormControl>
+                </>
+              )}
 
-          {activeStep === SetupSteps.SelectData &&
-            !loadingInputState.loadingBases &&
-            !loadingInputState.loadingTables && (
-              <>
-                <FormControl>
-                  <TextField
-                    value={selectedBaseId}
-                    select
-                    onChange={(e) => setSelectedBaseId(e.target.value)}
-                    size="small"
-                  >
-                    {airtableBases.map((base) => (
-                      <option key={base.id} value={base.id}>
-                        {base.name}
-                      </option>
-                    ))}
-                  </TextField>
-                </FormControl>
-                <FormControl>
-                  <TextField
-                    select
-                    size="small"
-                    value={selectedTableId}
-                    onChange={(e) => setSelectedTableId(e.target.value)}
-                  >
-                    {tables.map((table) => (
-                      <option key={table.id} value={table.id}>
-                        {table.name}
-                      </option>
-                    ))}
-                  </TextField>
-                </FormControl>
-              </>
-            )}
-          <Button
-            size="small"
-            disabled={activeStep === SetupSteps.ProvideApiKeys}
-            type="submit"
-            value="Submit"
-            variant={
-              activeStep === SetupSteps.SelectData ? 'contained' : 'outlined'
-            }
-          >
-            Finish
-          </Button>
-          <div style={{ color: 'red' }}>{validationError}</div>
-        </form>
+              {loadingInputState.loadingBases ||
+                (loadingInputState.loadingTables && (
+                  <>
+                    <Skeleton variant="rectangular" width="100%" height={40} />
+                    <Skeleton variant="rectangular" width="100%" height={40} />
+                  </>
+                ))}
+
+              {activeStep === SetupSteps.SelectData &&
+                !loadingInputState.loadingBases &&
+                !loadingInputState.loadingTables && (
+                  <>
+                    <FormControl>
+                      <TextField
+                        value={selectedBaseId}
+                        select
+                        onChange={(e) => setSelectedBaseId(e.target.value)}
+                        size="small"
+                      >
+                        {airtableBases.map((base) => (
+                          <option key={base.id} value={base.id}>
+                            {base.name}
+                          </option>
+                        ))}
+                      </TextField>
+                    </FormControl>
+                    <FormControl>
+                      <TextField
+                        select
+                        size="small"
+                        value={selectedTableId}
+                        onChange={(e) => setSelectedTableId(e.target.value)}
+                      >
+                        {tables.map((table) => (
+                          <option key={table.id} value={table.id}>
+                            {table.name}
+                          </option>
+                        ))}
+                      </TextField>
+                    </FormControl>
+                  </>
+                )}
+              <Button
+                size="small"
+                disabled={activeStep === SetupSteps.ProvideApiKeys}
+                type="submit"
+                value="Submit"
+                variant={
+                  activeStep === SetupSteps.SelectData
+                    ? 'contained'
+                    : 'outlined'
+                }
+              >
+                Finish
+              </Button>
+              <div style={{ color: 'red' }}>{validationError}</div>
+            </form>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
