@@ -52,7 +52,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
 
     return (assignees || []).map((assignee) => ({
       id: assignee.id,
-      clientName: assignee.givenName? `${assignee.givenName} ${assignee.familyName}`: assignee.name,
+      clientName: assignee.givenName? `${assignee.givenName} ${assignee.familyName}`: assignee.name, // if assignee is client, return full name
       url: `https://mahalani.vercel.app/${appId}?${paramName}=${assignee.id}`,
     }));
   }
