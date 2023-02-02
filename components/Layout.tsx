@@ -1,14 +1,17 @@
-import React, { ReactNode } from 'react';
-import Head from 'next/head';
-import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
+import React, { ReactNode, useEffect } from 'react';
 
 type Props = {
   children?: ReactNode;
   title?: string;
 };
 
-const Layout = ({ children, title = 'This is the default title' }: Props) => (
-  <div>{children}</div>
-);
+const Layout = ({ children, title = 'This is the default title' }: Props) => {
+  // Setting the document title
+  useEffect(() => {
+    window.document.title = title;
+  }, [title]);
+
+  return <div>{children}</div>;
+};
 
 export default Layout;
