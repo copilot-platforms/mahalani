@@ -4,12 +4,11 @@ import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
 import AppSetup from '../../../components/AppSetup';
 import Layout from '../../../components/Layout';
-import DataTable from '../../../components/DataTable';
 import { AppContext, AppContextType } from '../../../utils/appContext';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { fetchConfig } from '../../api/config/apiConfigUtils';
 import { AdminLayout } from '../../../components/AdminLayout';
-import { Typography, Box, Button } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
@@ -27,22 +26,32 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
     appConfig,
   );
+  const [clientList, setClientList] = useState<any[]>(clients || []);
 
-  const handleSetupComplete = (result: AppContextType) => {
-    fetch(`/api/config`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        id: appId,
-        ...result,
-      }),
-    });
-    setAppSetupData(result);
+  const handleSetupComplete = async (result: AppContextType) => {
+    // when app setup is complete load clients.
+    try {
+      await fetch(`/api/config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: appId,
+          ...result,
+        }),
+      });
+      setAppSetupData(result);
+
+      const fetchConfigDataResponse = await fetch(`/api/config?appId=${appId}`);
+      const fetchConfigData = await fetchConfigDataResponse.json();
+      setClientList(fetchConfigData);
+    } catch (ex) {
+      console.error('error fetching app config info', ex);
+    }
   };
 
-  const myRows = (clients || []).map((client) => ({
+  const myRows = clientList.map((client) => ({
     id: client.id,
     clientName: `${client.givenName} ${client.familyName}`,
     url: `https://mahalani.vercel.app/${appId}?clientId=${client.id}`,
