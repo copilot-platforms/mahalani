@@ -117,28 +117,30 @@ export async function getServerSideProps(context) {
 
   const companyId = context.query.companyId;
 
+  //check if data returned
+  const checkDataLength = (dataObj) => {
+    let dataLength
+    dataObj.data ? dataLength = Object.keys(dataObj.data).length : Object.keys(dataObj).length
+    dataObj.code === "not_found" ? dataLength = 0 : null
+    return dataLength
+  }
+
   if (clientId !== undefined) {
     const clientRes = await fetch(
       `https://api.copilot-staging.com/v1/client/${clientId}`,
       copilotGetReq,
     );
 
-    clientData = await clientRes.json(); 
-    // console.log(`client data: ${JSON.stringify(clientData)}`)
+    clientData = await clientRes.json();
 
-    // check if receiving empty object from client response
-    let checkDataLength 
+    // call company endpoint if  no data returned for client
+    if (checkDataLength(clientData) <= 0) {
+      const clientCompanyRes = await fetch(
+        `https://api.copilot-staging.com/v1/company/${clientId}`,
+        copilotGetReq,
+      );
 
-    clientData.data? checkDataLength = Object.keys(clientData.data).length : Object.keys(clientData).length
-
-    // call company endpoint in case if no data returned for client
-    if (checkDataLength <= 0){
-    const clientCompanyRes = await fetch(
-      `https://api.copilot-staging.com/v1/company/${clientId}`,
-      copilotGetReq,
-    );
-
-    clientData = await clientCompanyRes.json()
+      clientData = await clientCompanyRes.json()
     }
   } else if (companyId !== undefined) {
     const companyRes = await fetch(
@@ -146,7 +148,17 @@ export async function getServerSideProps(context) {
       copilotGetReq,
     );
     clientData = await companyRes.json()
-    // searchId = companyData.name
+
+    // call client endpoint if  no data returned for company
+    if (checkDataLength(clientData) <= 0) {
+      const clientCompanyRes = await fetch(
+        `https://api.copilot-staging.com/v1/client/${companyId}`,
+        copilotGetReq,
+      );
+
+      clientData = await clientCompanyRes.json()
+    }
+
   } else {
     console.log('No ID Found');
   }
