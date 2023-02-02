@@ -5,25 +5,26 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { CopyToClipboard } from './Clipboard';
 
 const ValueCellRenderer = (params: GridValueGetterParams) => (
-  <CopyToClipboard>
-    {({ copy }) => (
-      <>
-        <IconButton disableRipple>
+  <>
+    <CopyToClipboard>
+      {({ copy }) => (
+        <IconButton
+          disableRipple
+          onClick={() => {
+            copy(params.value);
+          }}
+        >
           <ContentCopyIcon
-            onClick={() => {
-              copy(params.value);
-            }}
             style={{
               fontSize: 12,
               marginRight: 5,
             }}
           />
         </IconButton>
-
-        <span>{params.value}</span>
-      </>
-    )}
-  </CopyToClipboard>
+      )}
+    </CopyToClipboard>
+    <span>{params.value}</span>
+  </>
 );
 const columns: GridColDef[] = [
   { field: 'clientName', headerName: 'Client name', width: 200 },
