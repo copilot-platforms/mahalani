@@ -68,7 +68,6 @@ const AppSetupPage = ({ appConfig }: AppSetupPageProps) => {
 
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
-  // console.log(`config session: ${session}`)
 
   if (!session) {
     return {
