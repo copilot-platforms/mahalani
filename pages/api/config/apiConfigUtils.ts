@@ -39,19 +39,14 @@ export const fetchConfig = async (appId: string) => {
 
 export const fetchUserApps = async (userId: string) => {
   const params = { ...bucketParams, Key: `users/${userId}/apps.json` };
-  try {
-    const data = await s3Client.send(new GetObjectCommand(params));
-    const s3ResponseStream = data.Body as any; // use any convert stream
-    const chunks = []
+  const data = await s3Client.send(new GetObjectCommand(params));
+  const s3ResponseStream = data.Body as any; // use any convert stream
+  const chunks = []
 
-    for await (const chunk of s3ResponseStream) {
-        chunks.push(chunk)
-    }
-
-    const responseBuffer = Buffer.concat(chunks)
-    return JSON.parse(responseBuffer.toString())
-  } catch (err) {
-    console.log("Error", err);
-    return null;
+  for await (const chunk of s3ResponseStream) {
+      chunks.push(chunk)
   }
+
+  const responseBuffer = Buffer.concat(chunks)
+  return JSON.parse(responseBuffer.toString())
 }

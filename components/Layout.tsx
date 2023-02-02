@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import Head from 'next/head';
-import { createTheme, ThemeProvider } from '@mui/material';
+import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
+
 type Props = {
   children?: ReactNode;
   title?: string;
@@ -9,7 +10,7 @@ type Props = {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#556cd6',
+      main: '#09aa6c',
     },
     secondary: {
       main: '#19857b',
@@ -24,6 +25,7 @@ const Layout = ({ children, title = 'This is the default title' }: Props) => (
       <meta charSet="utf-8" />
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     </Head>
+    <CssBaseline />
     {children}
   </ThemeProvider>
 );
