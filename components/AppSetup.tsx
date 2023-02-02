@@ -202,7 +202,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
         tableId: selectedTableId,
         viewId: selectedViewId,
       });
-      setActiveStep(SetupSteps.GoToApp);
+      setActiveStep(SetupSteps.GetStarted);
     } else {
       setValidationError(errorMessage);
     }
