@@ -12,7 +12,7 @@ type AdminLayoutProps = {
 export const AdminLayout = ({ description, showTitle = true, children }: AdminLayoutProps) => {
   return (
     <Container>
-    <Box display="flex" flexDirection="column" alignItems="center" mt={8}>
+    <Box display="flex" flexDirection="column" alignItems="center" pt={8}>
       <Image
           src={CopilotLogo}
           alt="Copilot logo"

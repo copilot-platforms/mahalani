@@ -1,13 +1,47 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getServerSession } from "next-auth/next"
-import { s3Client, bucketParams } from './apiConfigUtils';
+import { s3Client, bucketParams, fetchConfig } from './apiConfigUtils';
 import { authOptions } from "../auth/[...nextauth]"
 
 
 
-const handleGetConfig = (req: NextApiRequest, res: NextApiResponse) => {
-  res.status(200).json({})
+/**
+ * Get the config data for a given app id
+ * @param req next api request
+ * @param res next api response
+ * @returns relevant app data for a given app id
+ */
+const handleGetConfig = async (req: NextApiRequest, res: NextApiResponse) => {
+  // get appId from req query
+  const { appId } = req.query;
+  if (!appId) {
+    return res.status(400).end();
+  }
+
+  // config is found with key information that can be used to query
+  // clients backend for data
+  try {
+    const configData = await fetchConfig(appId as string);
+    const copilotGetReq = {
+      headers: {
+        'X-API-KEY': configData.copilotApiKey,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    const clientRes = await fetch(
+      `https://api.copilot-staging.com/v1/client`,
+      copilotGetReq,
+    );
+
+    const clientData = (await clientRes.json()).data;
+    res.status(200).json(clientData)
+  } catch (ex) {
+    console.log(ex);
+  }
+
+  return res.status(400).end();
 }
 
 const handlePostConfig = async (req: NextApiRequest, res: NextApiResponse) => {
