@@ -3,7 +3,7 @@ import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
 const columns: GridColDef[] = [
   { field: 'clientName', headerName: 'Client name', width: 230 },
-  { field: 'url', headerName: 'App URL', width: 630 },
+  { field: 'url', headerName: 'Manual App URL', width: 630 },
   { field: 'id', headerName: 'Client ID', width: 300 },
 ];
 
