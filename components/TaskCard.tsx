@@ -42,6 +42,9 @@ const useStyles = makeStyles({
       height: '20px',
       padding: '0',
       fontSize: '12px',
+      '&:hover': {
+        cursor: 'default',
+      },
     },
   },
 });
@@ -108,8 +111,9 @@ const TaskCard = ({
 
   const StatusIcon = StatusToIconMap[status];
 
+  // TODO: turn this back on once we want to actually allow clients to edit priority
   const openTaskCardMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setCardMenuAnchorEl(event.currentTarget as any);
+    return;
   };
 
   return (
