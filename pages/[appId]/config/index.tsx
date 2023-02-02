@@ -11,11 +11,10 @@ import { fetchConfig } from '../../api/config/apiConfigUtils';
 import { AdminLayout } from '../../../components/AdminLayout';
 import { Typography, Box, Button } from '@mui/material';
 
-
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
   clients: any[] | null;
-}
+};
 
 /**
  * This is the app page container where we can render the configuration
@@ -26,7 +25,7 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
   const router = useRouter();
   const { appId } = router.query;
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
-    appConfig
+    appConfig,
   );
 
   const handleSetupComplete = (result: AppContextType) => {
@@ -37,16 +36,16 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
       },
       body: JSON.stringify({
         id: appId,
-        ...result
+        ...result,
       }),
-    })
+    });
     setAppSetupData(result);
   };
 
   const myRows = (clients || []).map((client) => ({
     id: client.id,
     clientName: `${client.givenName} ${client.familyName}`,
-    url: `https://mahalani.vercel.app/${appId}?clientId=${client.id}`
+    url: `https://mahalani.vercel.app/${appId}?clientId=${client.id}`,
   }));
 
   return (
@@ -55,19 +54,17 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
         <AdminLayout
           showTitle={false}
           description={
-            appSetupData ? `Your app is setup! You can embed it as a Custom App in Copilot using the following url: https://mahalani.vercel.app/${appId}` : ''
+            appSetupData
+              ? `Your app is setup! You can embed it as a Custom App in Copilot using the following url: https://mahalani.vercel.app/${appId}`
+              : ''
           }
         >
           <React.Fragment>
-            {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
-            {appSetupData && (
-              <React.Fragment>
-                <Typography variant="subtitle1">
-                  You may first want to test it out as a <b>Manual App</b> for just one of your clients.
-                </Typography>
-                <DataTable rows={myRows} />
-              </React.Fragment>
-            )}
+            <AppSetup
+              onSetupComplete={handleSetupComplete}
+              appSetupData={appSetupData}
+              clientsRows={myRows}
+            />
           </React.Fragment>
           <React.Fragment>
           <Button
@@ -83,8 +80,6 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
   );
 };
 
-
-
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
 
@@ -97,7 +92,7 @@ export async function getServerSideProps(context) {
     };
   }
 
-  const { appId } = context.query
+  const { appId } = context.query;
   let appConfig: AppContextType | null = null;
   let clientData = null;
   try {
@@ -117,15 +112,14 @@ export async function getServerSideProps(context) {
 
     clientData = (await clientRes.json()).data;
     console.log(clientData);
-
   } catch (ex) {
-    console.error('error fetching user apps', ex)
+    console.error('error fetching user apps', ex);
   }
 
   return {
     props: {
       appConfig,
-      clients: clientData
+      clients: clientData,
     },
   };
 }
