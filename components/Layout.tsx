@@ -1,8 +1,6 @@
 import React, { ReactNode } from 'react';
-import Link from 'next/link';
 import Head from 'next/head';
 import { createTheme, ThemeProvider } from '@mui/material';
-
 type Props = {
   children?: ReactNode;
   title?: string;

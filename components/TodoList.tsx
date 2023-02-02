@@ -1,13 +1,16 @@
-import { Card, Grid } from '@mui/material';
-import Layout from './Layout';
+import { Divider, Grid, IconButton, Theme, Typography } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
-import { Task, TaskStatus } from './types';
-import { useContext, useEffect, useState } from 'react';
+import { Task, TaskStatus, TodoListViewMode } from './types';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AppContext } from '../utils/appContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
+import { makeStyles } from '@mui/styles';
+import { TaskListToolbar } from './TaskListToolbar';
+import { FilterTodoListDialog } from './FilterTodoListDialog';
+import clsx from 'clsx';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -17,13 +20,48 @@ const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
   [TaskStatus.Done]: [],
 };
 
-const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
+const useStyles = makeStyles((theme: Theme) => ({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+  },
+  listViewContainer: {
+    padding: '0 10px',
+    [theme.breakpoints.up('lg')]: {
+      padding: '0 200px',
+    },
+    [theme.breakpoints.up('xl')]: {
+      padding: '0 400px',
+    },
+  },
+}));
+export const TodoListFilterContext = createContext<{
+  filter: string;
+  setFilter: (filter: string) => void;
+}>({
+  filter: '',
+  setFilter: () => {},
+});
+
+const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
+  tasks,
+  title,
+}) => {
   const appSetupData = useContext(AppContext);
+  const classes = useStyles();
   // Get the airtable rest client instance
   const airtableClient = getAirtableClient(
     appSetupData.airtableApiKey,
     appSetupData.baseId,
   );
+  const [listViewMode, setListViewMode] = useState<TodoListViewMode>(
+    TodoListViewMode.Board,
+  );
+  const [searchFilter, setSearchFilter] = useState('');
+
+  const [openFilterDialog, setOpenFilterDialog] = useState(false);
+  const isListViewMode = listViewMode === TodoListViewMode.List;
 
   const [tasksByStatus, setTasksByStatus] =
     useState<Record<TaskStatus, Array<Task>>>(initialTasksByStatus);
@@ -57,6 +95,10 @@ const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
     const newTasks = tasksByStatus[newStatus];
     const taskToMove = existingTasks.find((task) => task.id === id);
 
+    // if the status is the same, do nothing
+    if (existingStatus === newStatus) {
+      return;
+    }
     if (!taskToMove) {
       return;
     }
@@ -96,43 +138,144 @@ const TodoList: React.FC<{ tasks: Array<Task> }> = ({ tasks }) => {
     handleStatusChanged(taskId, existingStatus, newTaskStatus);
   };
 
-  if (tasks.length === 0) {
-    return (
-      <div>
-        You have no tasks assigned!
-      </div>
+  /**
+   * Toggle between list and board view.
+   */
+  const handleToggleView = () => {
+    setListViewMode((prevView) =>
+      prevView === TodoListViewMode.Board
+        ? TodoListViewMode.List
+        : TodoListViewMode.Board,
     );
+  };
+
+  /**
+   * Add event listeners for keyboard shortcuts.
+   * Escape key closes the filter dialog.
+   * Command + F opens the filter dialog.
+   * Command + B toggles to board view.
+   * Command + L toggles to list view.
+   */
+  useEffect(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        setOpenFilterDialog(false);
+      }
+
+      if (e.key === 'f' && e.metaKey) {
+        e.preventDefault();
+        setOpenFilterDialog(true);
+      }
+
+      if (e.key === 'b' && e.metaKey) {
+        setListViewMode(TodoListViewMode.Board);
+      }
+
+      if (e.key === 'l' && e.metaKey) {
+        setListViewMode(TodoListViewMode.List);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('keydown', () => {});
+    };
+  }, []);
+
+  /**
+   * Filter the tasks by title using the searchFilter.
+   */
+  useEffect(() => {
+    // filter task by title
+    const filteredTasks = tasks.filter((task) =>
+      task.title.toLowerCase().includes(searchFilter.toLowerCase()),
+    );
+
+    setTasksByStatus(
+      TaskStatuses.reduce((acc, status) => {
+        acc[status] = filteredTasks.filter((task) => task.status === status);
+        return acc;
+      }, {} as Record<TaskStatus, Array<Task>>),
+    );
+  }, [searchFilter]);
+
+  // when there is no task, show empty state
+  if (tasks.length === 0) {
+    return <div>You have no tasks assigned!</div>;
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <Grid container spacing={1}>
-        {Object.entries(tasksByStatus).map(([status, tasks]) => (
-          <Grid item xs={4} key={status}>
-            <TaskColumn
-              title={status}
-              onDrop={(item) => {
-                handleDropTaskCard(item, status as TaskStatus);
+    <div>
+      <DndProvider backend={HTML5Backend}>
+        <TodoListFilterContext.Provider
+          value={{
+            filter: searchFilter,
+            setFilter: setSearchFilter,
+          }}
+        >
+          <FilterTodoListDialog
+            open={openFilterDialog}
+            onClose={() => {
+              setOpenFilterDialog(false);
+            }}
+          />
+          <div className={classes.root}>
+            <TaskListToolbar
+              title={title}
+              onToggleViewClick={handleToggleView}
+              onFilterClick={() => {
+                setOpenFilterDialog(true);
               }}
+              viewMode={listViewMode}
+            />
+
+            <Grid
+              container
+              mt={2}
+              gap={2}
+              justifyContent="center"
+              height={1}
+              className={clsx({
+                [classes.listViewContainer]: isListViewMode,
+              })}
             >
-              {tasks.map(({ title, assignee, description, status, id }) => (
-                <TaskCard
-                  key={title}
-                  title={title}
-                  assignee={assignee}
-                  description={description}
-                  status={status}
-                  id={id}
-                  onStatusChange={(newStatus: TaskStatus) =>
-                    handleStatusChanged(id, status, newStatus)
-                  }
-                />
+              {Object.entries(tasksByStatus).map(([status, tasks]) => (
+                <Grid item xs={12} md={isListViewMode ? 12 : 3} key={status}>
+                  <TaskColumn
+                    viewMode={listViewMode}
+                    title={status}
+                    onDrop={(item) => {
+                      handleDropTaskCard(item, status as TaskStatus);
+                    }}
+                  >
+                    {tasks.length === 0 && Boolean(searchFilter) && (
+                      <Typography variant="body2" color="textSecondary">
+                        No {status.toLowerCase()} tasks found
+                      </Typography>
+                    )}
+                    {tasks.map(
+                      ({ title, assignee, description, status, id }) => (
+                        <TaskCard
+                          viewMode={listViewMode}
+                          key={title}
+                          title={title}
+                          assignee={assignee}
+                          description={description}
+                          status={status}
+                          id={id}
+                          onStatusChange={(newStatus: TaskStatus) =>
+                            handleStatusChanged(id, status, newStatus)
+                          }
+                        />
+                      ),
+                    )}
+                  </TaskColumn>
+                </Grid>
               ))}
-            </TaskColumn>
-          </Grid>
-        ))}
-      </Grid>
-    </DndProvider>
+            </Grid>
+          </div>
+        </TodoListFilterContext.Provider>
+      </DndProvider>
+    </div>
   );
 };
 

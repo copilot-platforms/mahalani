@@ -14,29 +14,32 @@ type AppPagePros = {
 
 const DATA_REFRESH_TIMEOUT = 3000;
 
-const loadAppData = async (appData: AppContextType, clientData: ClientDataType) => {
-    const baseConstructor = getAirtableClient(
-        appData.airtableApiKey,
-        appData.baseId,
-    );
-    const tableClient = baseConstructor(appData.tableId);
+const loadAppData = async (
+  appData: AppContextType,
+  clientData: ClientDataType,
+) => {
+  const baseConstructor = getAirtableClient(
+    appData.airtableApiKey,
+    appData.baseId,
+  );
+  const tableClient = baseConstructor(appData.tableId);
 
-    const airtableRecords = await getAllRecords(
-        tableClient,
-        appData.viewId,
-        `{Client ID} = "${clientData.id}"`,
-    );
+  const airtableRecords = await getAllRecords(
+    tableClient,
+    appData.viewId,
+    `{Client ID} = "${clientData.id}"`,
+  );
 
-    console.info('airtableRecords', airtableRecords);
+  console.info('airtableRecords', airtableRecords);
 
-    // format the data coming from airtable to fit the task data struct
-    const tasksList: Array<Task> = airtableRecords.map((record) => ({
-        id: record.id,
-        title: record.fields.Name,
-        status: record.fields.Status,
-        assignee: clientData,
-    }));
-    return tasksList;
+  // format the data coming from airtable to fit the task data struct
+  const tasksList: Array<Task> = airtableRecords.map((record) => ({
+    id: record.id,
+    title: record.fields.Name,
+    status: record.fields.Status,
+    assignee: clientData,
+  }));
+  return tasksList;
 };
 
 /**
@@ -46,32 +49,34 @@ const loadAppData = async (appData: AppContextType, clientData: ClientDataType) 
  */
 
 const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
-    const [taskLists, setTaskList] = useState<Task[]>(tasks);
+  const [taskLists, setTaskList] = useState<Task[]>(tasks);
 
-    const refreshAppData = async () => {
-        const tasks = await loadAppData(appSetupData, clientData);
-        setTaskList(tasks);
+  const refreshAppData = async () => {
+    const tasks = await loadAppData(appSetupData, clientData);
+    setTaskList(tasks);
+  };
+
+  useEffect(() => {
+    if (!appSetupData) {
+      return;
     }
 
-    useEffect(() => {
-        if (!appSetupData) {
-            return;
-        }
+    const interval = setInterval(() => {
+      refreshAppData();
+    }, DATA_REFRESH_TIMEOUT);
 
-        const interval = setInterval(() => {
-            refreshAppData();
-        }, DATA_REFRESH_TIMEOUT);
+    // when the component unmounts, clear the interval
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
-        // when the component unmounts, clear the interval
-        return () => {
-        clearInterval(interval);
-        };
-    }, []);
+  const clientFullName = `${clientData.givenName} ${clientData.familyName}`;
 
   return (
     <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
-        <TodoList tasks={taskLists} />
+        <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
       </Layout>
     </AppContext.Provider>
   );
@@ -84,11 +89,10 @@ export default AppPage;
 */
 
 export async function getServerSideProps(context) {
-
   let appSetupData: AppContextType;
 
   try {
-    appSetupData = await fetchConfig(context.query.appId); 
+    appSetupData = await fetchConfig(context.query.appId);
   } catch (error) {
     console.log('error fetching config', error);
   }
@@ -130,11 +134,11 @@ export async function getServerSideProps(context) {
   } else {
     console.log('No ID Found');
   }
-  
+
   // -----------GET TASKS----------------
   let tasks: Array<Task> = [];
   try {
-    tasks = await loadAppData(appSetupData, clientData);    
+    tasks = await loadAppData(appSetupData, clientData);
   } catch (error) {
     console.log('error fetching tasks', error);
   }
