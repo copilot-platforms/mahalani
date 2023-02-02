@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { listBases, ApiBaseItem, getAirtableClient, ApiTableItem, listTables } from "../utils/airtableUtils";
+import { listBases, ApiBaseItem, ApiTableItem, listTables } from "../utils/airtableUtils";
 
 const AppSetup = ({ onSetupComplete }) => {
     const [airtableApiKey, setAirtableApiKey] = useState('');
