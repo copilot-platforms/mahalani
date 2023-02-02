@@ -24,6 +24,7 @@ type Props = {
   title: string;
   viewMode: TodoListViewMode;
   onDrop: (item: { taskId: string }) => void;
+  children: React.ReactNode;
 };
 
 /**
