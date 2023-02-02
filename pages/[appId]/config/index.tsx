@@ -13,7 +13,7 @@ import { Typography, Box, Button } from '@mui/material';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
-  clients: any[] | null;
+  assignees: any[] | null;
 };
 
 /**
@@ -21,7 +21,7 @@ type AppSetupPageProps = {
  * page or the app itself (which gets some client information).
  * @returns
  */
-const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
+const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
   const router = useRouter();
   const { appId } = router.query;
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
@@ -42,10 +42,14 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
     setAppSetupData(result);
   };
 
-  const myRows = (clients || []).map((client) => ({
-    id: client.id,
-    clientName: `${client.givenName} ${client.familyName}`,
-    url: `https://mahalani.vercel.app/${appId}?clientId=${client.id}`,
+/* Here we need to keep in mind that we name the param clientId or companyId based on default settings. For our test portal
+this will work, but for default companies portals we need to change param name to company. Also might be moot point because
+at the moment the company will not connect to custom app in the portal.
+*/
+  const myRows = (assignees || []).map((assignee) => ({
+    id: assignee.id,
+    clientName: assignee.givenName? `${assignee.givenName} ${assignee.familyName}`: assignee.name,
+    url: `https://mahalani.vercel.app/${appId}?clientId=${assignee.id}`,
   }));
 
   return (
@@ -94,7 +98,7 @@ export async function getServerSideProps(context) {
 
   const { appId } = context.query;
   let appConfig: AppContextType | null = null;
-  let clientData = null;
+  let assigneeData = null;
   try {
     appConfig = await fetchConfig(appId);
 
@@ -115,15 +119,18 @@ export async function getServerSideProps(context) {
       copilotGetReq
     )
 
-    const allCompanies = (await companyRes.json()).data;
+    // get all companies from a portal
+    const allCompanies = (await companyRes.json()).data; 
+
+    // create list of valid companies
     const companyData = []
     const companyList = await allCompanies.forEach((company) => {
       company.name.length > 0 ? companyData.push(company): null
     })
-    // console.log(`company list: ${JSON.stringify(companyData)}`)
 
-    clientData = (await clientRes.json()).data.concat(companyData);
-    console.log(`all data: ${clientData}`);
+    // concatenate assignees and companies
+    assigneeData = (await clientRes.json()).data.concat(companyData);
+    console.log(`all data: ${assigneeData}`);
   } catch (ex) {
     console.error('error fetching user apps', ex);
   }
@@ -131,7 +138,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       appConfig,
-      clients: clientData,
+      assignees: assigneeData,
     },
   };
 }
