@@ -9,38 +9,26 @@ import { useEffect } from 'react';
 import { getServerSession } from 'next-auth';
 import { fetchUserApps } from './api/config/apiConfigUtils';
 import { authOptions } from './api/auth/[...nextauth]';
+import { AdminLayout } from '../components/AdminLayout';
 
 const IndexPage = () => {
   const { data: session } = useSession();
 
   return (
     <Layout>
-      <Box display="flex" flexDirection="column" alignItems="center" mt={8}>
-        <Image
-            src={CopilotLogo}
-            alt="Copilot logo"
-            width="100"
-        />
-        <Box mt={4}>
-          <Typography variant="h2">Client Task Management</Typography>
-        </Box>
-        <Box mt={2}>
-          <Typography variant="h6">
-            This is an app for client task management that can be embedded in your Copilot dashboard.
-          </Typography>
-        </Box>
-        <Box mt={8}>
-          {!session && (
-            <Button
-              onClick={() => signIn()}
-              color="primary"
-              variant="contained"
-            >
-              Get Started
-            </Button>
-          )}
-        </Box>
-      </Box>
+      <AdminLayout
+        description="This is an app for client task management that can be embedded in your Copilot dashboard."
+      >
+        {!session && (
+          <Button
+            onClick={() => signIn()}
+            color="primary"
+            variant="contained"
+          >
+            Get Started
+          </Button>
+        )}
+      </AdminLayout>
     </Layout>
   );
 }

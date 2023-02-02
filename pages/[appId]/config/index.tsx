@@ -1,12 +1,14 @@
 import { getServerSession } from 'next-auth';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppSetup from '../../../components/AppSetup';
 import Layout from '../../../components/Layout';
 import DataTable from '../../../components/DataTable';
 import { AppContext, AppContextType } from '../../../utils/appContext';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { fetchConfig } from '../../api/config/apiConfigUtils';
+import { AdminLayout } from '../../../components/AdminLayout';
+import { Typography, Box } from '@mui/material';
 
 
 type AppSetupPageProps = {
@@ -48,22 +50,25 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
 
   return (
     <AppContext.Provider value={appSetupData}>
-      <Layout title="Home | Next.js + TypeScript Example">
-        {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
-        {appSetupData && (
-          <div>
-            <p>
-              Your app is setup! You can embed it as a Custom App in Copilot using the following url:
-            </p>
-            <p>
-              {`https://mahalani.vercel.app/${appId}`}
-            </p>
-            <p>
-              You may first want to test it out as a Manual App for just one of your clients.
-            </p>
-            <DataTable rows={myRows} />
-          </div>
-        )}
+      <Layout title="App Config">
+        <AdminLayout
+          showTitle={false}
+          description={
+            appSetupData ? `Your app is setup! You can embed it as a Custom App in Copilot using the following url: https://mahalani.vercel.app/${appId}` : ''
+          }
+        >
+          <React.Fragment>
+            {!appSetupData && <AppSetup onSetupComplete={handleSetupComplete} />}
+            {appSetupData && (
+              <React.Fragment>
+                <Typography variant="subtitle1">
+                  You may first want to test it out as a <b>Manual App</b> for just one of your clients.
+                </Typography>
+                <DataTable rows={myRows} />
+              </React.Fragment>
+            )}
+          </React.Fragment>
+        </AdminLayout>
       </Layout>
     </AppContext.Provider>
   );
