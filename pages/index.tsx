@@ -4,12 +4,13 @@ import { useSession, signIn } from "next-auth/react"
 import Image from 'next/image'
 import CopilotLogo from '../assets/Copilot_Icon_Circle.png';
 import Layout from '../components/Layout'
-import { Button, Grid, Box, Typography } from '@mui/material';
-import { useEffect } from 'react';
+import { Button } from '@mui/material';
+import React from 'react';
 import { getServerSession } from 'next-auth';
 import { fetchUserApps } from './api/config/apiConfigUtils';
 import { authOptions } from './api/auth/[...nextauth]';
 import { AdminLayout } from '../components/AdminLayout';
+import { Box } from '@mui/system';
 
 const IndexPage = () => {
   const { data: session } = useSession();
@@ -20,13 +21,23 @@ const IndexPage = () => {
         description="This is an app for client task management that can be embedded in your Copilot dashboard."
       >
         {!session && (
-          <Button
-            onClick={() => signIn("google")}
-            color="primary"
-            variant="contained"
-          >
-            Get Started
-          </Button>
+          <React.Fragment>
+            <Button
+              onClick={() => signIn("cognito")}
+              color="primary"
+              variant="contained"
+            >
+              Sign in with Copilot
+            </Button>
+            <Box mt={1}>
+              <Button
+                onClick={() => signIn("google")}
+                color="primary"
+              >
+                Sign in with Google
+              </Button>
+            </Box>
+          </React.Fragment>
         )}
       </AdminLayout>
     </Layout>
