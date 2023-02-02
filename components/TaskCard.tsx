@@ -86,7 +86,7 @@ const TaskCard = ({
 }: TaskCardProps) => {
   const classes = useStyles({ viewMode });
 
-  const [taskPriority, setTaskPriority] = React.useState(priority.toString());
+  const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
   };
