@@ -41,7 +41,7 @@ export const TodoListFilterContext = createContext<{
   setFilter: (filter: string) => void;
 }>({
   filter: '',
-  setFilter: () => {},
+  setFilter: () => { },
 });
 
 const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
@@ -177,7 +177,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     });
 
     return () => {
-      window.removeEventListener('keydown', () => {});
+      window.removeEventListener('keydown', () => { });
     };
   }, []);
 
@@ -260,7 +260,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                       </Typography>
                     )}
                     {tasks.map(
-                      ({ title, assignee, description, status, id }) => (
+                      ({ title, assignee, description, status, priority, id }) => (
                         <TaskCard
                           viewMode={listViewMode}
                           key={title}
@@ -268,6 +268,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                           assignee={assignee}
                           description={description}
                           status={status}
+                          priority={priority}
                           id={id}
                           onStatusChange={(newStatus: TaskStatus) =>
                             handleStatusChanged(id, status, newStatus)
