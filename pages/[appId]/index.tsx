@@ -120,7 +120,7 @@ export async function getServerSideProps(context) {
   //check if data returned
   const checkDataLength = (dataObj) => {
     let dataLength
-    dataObj.data ? dataLength = Object.keys(dataObj.data).length : Object.keys(dataObj).length
+    dataObj.data ? dataLength = Object.keys(dataObj.data).length : Object.keys(dataObj).length 
     dataObj.code === "not_found" ? dataLength = 0 : null
     return dataLength
   }
