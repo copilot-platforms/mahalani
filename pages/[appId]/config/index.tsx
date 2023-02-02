@@ -69,7 +69,7 @@ export async function getServerSideProps(context) {
   }
 
   const { appId } = context.query
-  let appConfig: AirtableContextType | null = null;
+  let appConfig: AppContextType | null = null;
   try {
     appConfig = await fetchConfig(appId);
   } catch (ex) {
