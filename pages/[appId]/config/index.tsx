@@ -44,10 +44,10 @@ const AppSetupPage = ({ appConfig }: AppSetupPageProps) => {
         {appSetupData && (
           <div>
             <p>
-              Your app its setup, you can embed this in your Copilot dashboard using the following url:
+              Your app is setup, you can embed this in your Copilot dashboard using the following url:
             </p>
             <p>
-              {`https://mahalani.vercal.app/${appId}`}
+              {`https://mahalani.vercel.app/${appId}`}
             </p>
           </div>
         )}
