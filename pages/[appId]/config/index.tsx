@@ -46,11 +46,18 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
 this will work, but for default companies portals we need to change param name to company. Also might be moot point because
 at the moment the company will not connect to custom app in the portal.
 */
-  const myRows = (assignees || []).map((assignee) => ({
-    id: assignee.id,
-    clientName: assignee.givenName? `${assignee.givenName} ${assignee.familyName}`: assignee.name,
-    url: `https://mahalani.vercel.app/${appId}?clientId=${assignee.id}`,
-  }));
+  const isCompany = false
+  
+  const setRowsForDefaultChannelType = () => {
+    let paramName = 'clientId'
+    isCompany ? paramName = 'companyId' : null
+
+    return (assignees || []).map((assignee) => ({
+      id: assignee.id,
+      clientName: assignee.givenName? `${assignee.givenName} ${assignee.familyName}`: assignee.name,
+      url: `https://mahalani.vercel.app/${appId}?${paramName}=${assignee.id}`,
+    }));
+  }
 
   return (
     <AppContext.Provider value={appSetupData}>
@@ -67,7 +74,7 @@ at the moment the company will not connect to custom app in the portal.
             <AppSetup
               onSetupComplete={handleSetupComplete}
               appSetupData={appSetupData}
-              clientsRows={myRows}
+              clientsRows={setRowsForDefaultChannelType()}
             />
           </React.Fragment>
           <React.Fragment>
