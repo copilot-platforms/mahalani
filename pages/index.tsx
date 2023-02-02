@@ -21,7 +21,7 @@ const IndexPage = () => {
       >
         {!session && (
           <Button
-            onClick={() => signIn()}
+            onClick={() => signIn("google")}
             color="primary"
             variant="contained"
           >
