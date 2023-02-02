@@ -3,14 +3,11 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   FormControl,
   Skeleton,
   TextField,
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import {
   listBases,
@@ -18,12 +15,13 @@ import {
   ApiTableItem,
   listTables,
 } from '../utils/airtableUtils';
+import DataTable from './DataTable';
 import AppSetupStepper from './SetupSteps';
 
 enum SetupSteps {
   ProvideApiKeys = 0,
   SelectData = 1,
-  GoToApp = 2,
+  GetStarted = 2,
 }
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     padding: 16,
-    width: 350,
+    width: ({ cardWidth }) => cardWidth,
     boxShadow: '0px 0px 24px rgba(0, 0, 0, 0.07)',
   },
   form: {
@@ -47,15 +45,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const steps = ['Provide API keys', 'Select your data', 'Go to app'];
+const steps = ['Provide API keys', 'Select your data', 'Get started'];
 
-const AppSetup = ({ onSetupComplete, appSetupData }) => {
-  const appId = useRouter().query.appId as string;
-  const appLink = `https://mahalani.vercel.app/${appId}`;
+const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
   const [activeStep, setActiveStep] = useState(
-    appSetupData ? SetupSteps.GoToApp : SetupSteps.ProvideApiKeys,
+    appSetupData ? SetupSteps.GetStarted : SetupSteps.ProvideApiKeys,
   );
-  const classes = useStyles();
+  const classes = useStyles({
+    cardWidth: clientsRows.length > 0 ? 800 : 350,
+  });
   const [airtableApiKey, setAirtableApiKey] = useState('');
   const [copilotApiKey, setCopilotApiKey] = useState('');
   const [airtableBases, setAirtableBases] = useState<ApiBaseItem[]>([]);
@@ -219,15 +217,7 @@ const AppSetup = ({ onSetupComplete, appSetupData }) => {
         />
 
         <CardContent>
-          {appSetupData && (
-            <>
-              <p>
-                Your app its setup, you can embed this in your Copilot dashboard
-                using the following url:
-              </p>
-              <Link href={appLink}>{appLink}</Link>
-            </>
-          )}
+          {appSetupData && <DataTable rows={clientsRows} />}
 
           {!appSetupData && (
             <form onSubmit={handleSubmit} className={classes.form}>
