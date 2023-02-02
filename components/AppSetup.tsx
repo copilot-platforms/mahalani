@@ -4,6 +4,7 @@ import {
     CardContent,
     CardHeader,
     FormControl,
+    MenuItem,
     Skeleton,
     TextField,
 } from '@mui/material';
@@ -277,9 +278,9 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
                                                 size="small"
                                             >
                                                 {airtableBases.map((base) => (
-                                                    <option key={base.id} value={base.id}>
+                                                    <MenuItem key={base.id} value={base.id}>
                                                         {base.name}
-                                                    </option>
+                                                    </MenuItem>
                                                 ))}
                                             </TextField>
                                         </FormControl>
@@ -291,9 +292,9 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
                                                 onChange={(e) => setSelectedTableId(e.target.value)}
                                             >
                                                 {tables.map((table) => (
-                                                    <option key={table.id} value={table.id}>
+                                                    <MenuItem key={table.id} value={table.id}>
                                                         {table.name}
-                                                    </option>
+                                                    </MenuItem>
                                                 ))}
                                             </TextField>
                                         </FormControl>
