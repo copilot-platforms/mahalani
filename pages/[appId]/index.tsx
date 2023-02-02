@@ -38,6 +38,7 @@ const loadAppData = async (
     title: record.fields.Name,
     status: record.fields.Status,
     assignee: clientData,
+    priority: record.fields.Priority,
   }));
   return tasksList;
 };

@@ -10,7 +10,7 @@ import {
   Chip,
   CardContent,
 } from '@mui/material';
-import { Task, TaskStatus, TodoListViewMode } from './types';
+import { Task, TaskStatus, TodoListViewMode, Priority } from './types';
 import { useDrag } from 'react-dnd';
 import { makeStyles } from '@mui/styles';
 import {
@@ -42,6 +42,9 @@ const useStyles = makeStyles({
       height: '20px',
       padding: '0',
       fontSize: '12px',
+      '&:hover': {
+        cursor: 'default',
+      },
     },
   },
 });
@@ -55,12 +58,6 @@ const PriorityToColorMap = {
   Medium: 'warning',
   Low: 'success',
 };
-
-enum TaskPriority {
-  High = 'High',
-  Medium = 'Medium',
-  Low = 'Low',
-}
 
 const PriorityToComponentMap = {
   High: SignalCellularAltIcon,
@@ -82,13 +79,14 @@ const StatusToIconMap = {
 const TaskCard = ({
   title,
   status,
+  priority,
   id,
   onStatusChange,
   viewMode,
 }: TaskCardProps) => {
   const classes = useStyles({ viewMode });
 
-  const [taskPriority, setTaskPriority] = React.useState('High');
+  const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
   };
@@ -113,8 +111,9 @@ const TaskCard = ({
 
   const StatusIcon = StatusToIconMap[status];
 
+  // TODO: turn this back on once we want to actually allow clients to edit priority
   const openTaskCardMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setCardMenuAnchorEl(event.currentTarget as any);
+    return;
   };
 
   return (
@@ -155,13 +154,15 @@ const TaskCard = ({
 
             <Typography fontSize={16}>{title}</Typography>
           </div>
-          <Chip
-            component="button"
-            label={taskPriority}
-            onClick={openTaskCardMenu}
-            color={PriorityToColorMap[taskPriority]}
-            className={classes.priorityChip}
-          />
+          {priority &&
+            <Chip
+              component="button"
+              label={taskPriority}
+              onClick={openTaskCardMenu}
+              color={PriorityToColorMap[taskPriority]}
+              className={classes.priorityChip}
+            />
+          }
         </div>
       </CardContent>
 
@@ -209,7 +210,7 @@ const TaskCard = ({
           setCardMenuAnchorEl(null);
         }}
       >
-        {Object.entries(TaskPriority).map(([key, value]) => (
+        {Object.entries(Priority).map(([key, value]) => (
           <MenuItem
             onClick={() => {
               setTaskPriority(value);
