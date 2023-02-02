@@ -41,13 +41,6 @@ const loadAppData = async (
   return tasksList;
 };
 
-//validate if client or company
-const isCompany = (data: AssigneeDataType) => {
-  if (data.givenName) return false;
-
-  return true;
-};
-
 /**
  * This is the app page container where we can render the configuration
  * page or the app itself (which gets some client information).
@@ -77,7 +70,8 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     };
   }, []);
 
-  const assigneeName = isCompany ? clientData.name : `${clientData.givenName} ${clientData.familyName}`;
+  // if assignee object has name property (company), name displayed is company, client if not
+  const assigneeName = clientData.name ? clientData.name : `${clientData.givenName} ${clientData.familyName}`;
 
   return (
     <AppContext.Provider value={appSetupData}>
@@ -129,8 +123,23 @@ export async function getServerSideProps(context) {
       copilotGetReq,
     );
 
-    clientData = await clientRes.json();
-    console.log(`CLIENT DATA: ${JSON.stringify(clientData)}`);
+    clientData = await clientRes.json(); 
+    // console.log(`client data: ${JSON.stringify(clientData)}`)
+
+    // check if receiving empty object from client response
+    let checkDataLength 
+
+    clientData.data? checkDataLength = Object.keys(clientData.data).length : Object.keys(clientData).length
+
+    // call company endpoint in case if no data returned for client
+    if (checkDataLength <= 0){
+    const clientCompanyRes = await fetch(
+      `https://api.copilot-staging.com/v1/company/${clientId}`,
+      copilotGetReq,
+    );
+
+    clientData = await clientCompanyRes.json()
+    }
   } else if (companyId !== undefined) {
     const companyRes = await fetch(
       `https://api.copilot-staging.com/v1/company/${companyId}`,
