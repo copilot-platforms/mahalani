@@ -9,6 +9,7 @@ import { authOptions } from '../../api/auth/[...nextauth]';
 import { fetchConfig } from '../../api/config/apiConfigUtils';
 import { AdminLayout } from '../../../components/AdminLayout';
 import { Box, Button } from '@mui/material';
+import { AdvancedSetup } from '../../../components/AdvancedSetup';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
@@ -28,7 +29,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
   );
   const [clientList, setClientList] = useState<any[]>(assignees || []);
 
-  const handleSetupComplete = async (result: AppContextType) => {
+  const handleSaveAppConfig = async (result: AppContextType) => {
     // when app setup is complete load clients.
     try {
       await fetch(`/api/config`, {
@@ -84,11 +85,15 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
         >
           <React.Fragment>
             <AppSetup
-              onSetupComplete={handleSetupComplete}
+              onSetupComplete={handleSaveAppConfig}
               appSetupData={appSetupData}
               clientsRows={setRowsForDefaultChannelType()}
             />
           </React.Fragment>
+          <AdvancedSetup
+            appSetupData={appSetupData}
+            onConfigSave={handleSaveAppConfig}
+          />
           <React.Fragment>
             <Button
               onClick={() => signOut()}

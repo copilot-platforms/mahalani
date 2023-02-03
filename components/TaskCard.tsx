@@ -116,6 +116,7 @@ const TaskCard = ({
 
   // TODO: turn this back on once we want to actually allow clients to edit priority
   const openTaskCardMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     return;
   };
 
@@ -149,6 +150,7 @@ const TaskCard = ({
             <ButtonGroup>
               <IconButton
                 onClick={(event) => {
+                  event.stopPropagation();
                   setMenuAnchorEl(event.currentTarget);
                 }}
               >

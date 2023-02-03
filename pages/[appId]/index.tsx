@@ -84,7 +84,7 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
 
   return (
     <AppContext.Provider value={appSetupData}>
-      <Layout title="Home | Next.js + TypeScript Example">
+      <Layout title="Custom App - Task Management">
         <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
       </Layout>
     </AppContext.Provider>
