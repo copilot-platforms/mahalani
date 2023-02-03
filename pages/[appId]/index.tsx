@@ -172,6 +172,7 @@ export async function getServerSideProps(context) {
 
   const appConfig = {
     controls: appSetupData.controls,
+    defaultChannelType: appSetupData.defaultChannelType || null,
   }
 
   console.info('loaded tasks', tasks.length);

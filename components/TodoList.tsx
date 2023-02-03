@@ -21,6 +21,7 @@ import { AddTaskButton } from './AddTaskButton';
 import { AddTaskCardForm } from './AddTaskCard';
 import { DetailedCardView } from './DetailedCardView';
 import { useRouter } from 'next/router';
+import { AppContext } from '../utils/appContext';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -62,6 +63,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
   const router = useRouter();
   const { appId } = router.query;
   const { classes } = useStyles();
+  const appConfig = useContext(AppContext);
   // Get the current client airtable record ref which lives in the tasks
   const clientIdRef = tasks[0]?.clientIdRef;
   const [listViewMode, setListViewMode] = useState<TodoListViewMode>(
@@ -391,11 +393,13 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                           columnStatus={status as TaskStatus}
                         />
                       )}
-                      <AddTaskButton
-                        onClick={() => {
-                          handleAddTaskClick(status as TaskStatus);
-                        }}
-                      />
+                      {appConfig.controls?.allowAddingItems && (
+                        <AddTaskButton
+                          onClick={() => {
+                            handleAddTaskClick(status as TaskStatus);
+                          }}
+                        />
+                      )}
                     </>
                   </TaskColumn>
                 </Grid>
