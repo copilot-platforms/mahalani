@@ -60,11 +60,15 @@ export const TodoListFilterContext = createContext<{
   setFilter: () => {},
 });
 
-const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
-  tasks,
-  title,
-}) => {
+const TodoList: React.FC<{
+  tasks: Array<Task>;
+  title: string;
+}> = ({ tasks, title }) => {
   const appSetupData = useContext(AppContext);
+
+  // Get the current client airtable record ref which lives in the tasks
+  const clientIdRef = tasks[0]?.clientIdRef;
+
   const { classes } = useStyles();
   // Get the airtable rest client instance
   const airtableClient = getAirtableClient(
@@ -284,17 +288,22 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     }));
   };
 
-  const handleAddTask = async (task: Task) => {
+  const handleAddTask = async (newTask: Task) => {
+    setTasksByStatus((currentState) => ({
+      ...currentState,
+      [newTask.status]: [...currentState[newTask.status], newTask],
+    }));
+
     setShowAddTaskOnColumn((currentState) => ({
       ...currentState,
-      [task.status]: false,
+      [newTask.status]: false,
     }));
 
     try {
       await addRecord(tableClient, {
-        Name: task.title,
-        Status: task.status || TaskStatus.Todo,
-        'Relevant Client ID': ['recWpzCd86WcTM4Fc'],
+        Name: newTask.title,
+        Status: newTask.status,
+        'Relevant Client ID': clientIdRef,
       });
     } catch (error) {
       console.error('Error adding record', error);

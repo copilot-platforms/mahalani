@@ -5,6 +5,7 @@ import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
 import { AppContext, AppContextType } from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
+import * as _ from 'lodash';
 
 type AppPagePros = {
   clientData: AssigneeDataType | null;
@@ -42,6 +43,7 @@ const loadAppData = async (
     attachments: record.fields.attachments,
     description: record.fields.description,
     learnMoreLink: record.fields.learnMoreLink,
+    clientIdRef: record.fields['Relevant Client ID'],
   }));
   return tasksList;
 };

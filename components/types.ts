@@ -12,7 +12,7 @@ export enum Priority {
 type AirTableAttachment = {
   type: string;
   url: string;
-}
+};
 
 export type Task = {
   id?: string;
@@ -23,6 +23,7 @@ export type Task = {
   description?: string;
   attachments?: AirTableAttachment[] | null;
   learnMoreLink?: string | null;
+  clientIdRef?: string; // This is used to link the task to the client in the database
 };
 
 export type AssigneeDataType = {

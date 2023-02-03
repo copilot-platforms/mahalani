@@ -1,4 +1,4 @@
-import Airtable, { FieldSet, Table } from 'airtable';
+import Airtable, { FieldSet, Records, Table } from 'airtable';
 
 export type ApiBaseItem = {
   id: string;
@@ -96,8 +96,5 @@ export const updateRecord = async (
 };
 
 export const addRecord = async (table: Table<FieldSet>, fields: FieldSet) => {
-  // do partial update on airtable record for provided fields
-
-  console.info('fields', fields);
-  const record = await table.create(fields);
+  const newRecord = await table.create(fields);
 };
