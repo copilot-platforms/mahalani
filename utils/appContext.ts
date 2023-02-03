@@ -6,14 +6,17 @@ export type AppSetupControls = {
     allowingUpdatingDetails?: boolean;
 }
 
+export type ClientAppConfig = {
+    controls?: AppSetupControls;
+    defaultChannelType: string;
+}
+
 export type AppContextType = {
     airtableApiKey: string;
     copilotApiKey: string;
     baseId: string;
     tableId: string;
     viewId: string;
-    defaultChannelType: string;
-    controls?: AppSetupControls;
-};
+} & ClientAppConfig;
 
-export const AppContext = React.createContext<AppContextType | null>(null);
+export const AppContext = React.createContext<ClientAppConfig | null>(null);

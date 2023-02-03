@@ -13,12 +13,6 @@ import { Task, TaskStatus, TodoListViewMode } from './types';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { AppContext } from '../utils/appContext';
-import {
-  addRecord,
-  getAirtableClient,
-  updateRecord,
-} from '../utils/airtableUtils';
 import { TaskListToolbar } from './TaskListToolbar';
 import { FilterTodoListDialog } from './FilterTodoListDialog';
 import clsx from 'clsx';
@@ -26,6 +20,8 @@ import { makeStyles } from '../utils/makeStyles';
 import { AddTaskButton } from './AddTaskButton';
 import { AddTaskCardForm } from './AddTaskCard';
 import { DetailedCardView } from './DetailedCardView';
+import { useRouter } from 'next/router';
+import { AppContext } from '../utils/appContext';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -60,24 +56,16 @@ export const TodoListFilterContext = createContext<{
   setFilter: () => {},
 });
 
-const TodoList: React.FC<{
-  tasks: Array<Task>;
-  title: string;
-}> = ({ tasks, title }) => {
-  const appSetupData = useContext(AppContext);
-
+const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
+  tasks,
+  title,
+}) => {
+  const router = useRouter();
+  const { appId } = router.query;
+  const { classes } = useStyles();
+  const appConfig = useContext(AppContext);
   // Get the current client airtable record ref which lives in the tasks
   const clientIdRef = tasks[0]?.clientIdRef;
-
-  const { classes } = useStyles();
-  // Get the airtable rest client instance
-  const airtableClient = getAirtableClient(
-    appSetupData.airtableApiKey,
-    appSetupData.baseId,
-  );
-
-  const tableClient = airtableClient(appSetupData.tableId);
-
   const [listViewMode, setListViewMode] = useState<TodoListViewMode>(
     TodoListViewMode.Board,
   );
@@ -143,9 +131,15 @@ const TodoList: React.FC<{
     setTasksByStatus(updatedTasks);
 
     try {
-      await updateRecord(tableClient, id, {
-        Status: newStatus,
-      });
+      await fetch(`/api/data?appId=${appId}&recordId=${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          Status: newStatus,
+        }),
+      })
     } catch (ex) {
       console.error('Error updating record', ex);
     }
@@ -298,10 +292,16 @@ const TodoList: React.FC<{
     }));
 
     try {
-      await addRecord(tableClient, {
-        Name: newTask.title,
-        Status: newTask.status,
-        'Relevant Client ID': clientIdRef,
+      await fetch(`/api/data?appId=${appId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          Name: newTask.title,
+          Status: newTask.status,
+          'Relevant Client ID': clientIdRef,
+        }),
       });
     } catch (error) {
       console.error('Error adding record', error);
@@ -393,11 +393,13 @@ const TodoList: React.FC<{
                           columnStatus={status as TaskStatus}
                         />
                       )}
-                      <AddTaskButton
-                        onClick={() => {
-                          handleAddTaskClick(status as TaskStatus);
-                        }}
-                      />
+                      {appConfig.controls?.allowAddingItems && (
+                        <AddTaskButton
+                          onClick={() => {
+                            handleAddTaskClick(status as TaskStatus);
+                          }}
+                        />
+                      )}
                     </>
                   </TaskColumn>
                 </Grid>

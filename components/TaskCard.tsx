@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   Card,
   MenuItem,
@@ -16,9 +16,12 @@ import {
   SignalCellularAlt1Bar,
   SignalCellularAlt2Bar,
 } from '@mui/icons-material';
+import OpenInFull from '@mui/icons-material/OpenInFull';
 import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 import { TodoIcon, InProgressIcon, DoneIcon } from '../icons';
 import { makeStyles } from '../utils/makeStyles';
+import { Box } from '@mui/system';
+import { AppContext } from '../utils/appContext';
 
 const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
   card: {
@@ -88,7 +91,7 @@ const TaskCard = ({
   onTaskOpen,
 }: TaskCardProps) => {
   const { classes } = useStyles({ viewMode });
-
+  const appConfig = useContext(AppContext);
   const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
@@ -135,7 +138,6 @@ const TaskCard = ({
       style={{
         opacity: opacity,
       }}
-      onClick={openTaskCard}
     >
       <CardContent>
         <div
@@ -146,33 +148,59 @@ const TaskCard = ({
             gap: '8px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <ButtonGroup>
-              <IconButton
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setMenuAnchorEl(event.currentTarget);
+          <Box display="flex" alignItems="center" gap={1}>
+            {appConfig.controls?.allowUpdatingStatus && (
+              <ButtonGroup
+                sx={{
+                  margin: 'auto 0'
                 }}
               >
-                <StatusIcon
-                  style={{
-                    fontSize: '12px',
+                <IconButton
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setMenuAnchorEl(event.currentTarget);
                   }}
+                >
+                  <StatusIcon
+                    style={{
+                      fontSize: '12px',
+                    }}
+                  />
+                </IconButton>
+              </ButtonGroup>
+            )}
+            {!appConfig.controls?.allowUpdatingStatus && (
+              <StatusIcon
+                style={{
+                  fontSize: '12px',
+                }}
+              />
+            )}
+            <div>
+              <Typography fontSize={16} component="div">{title}</Typography>
+              {priority && (
+                <Chip
+                  component="button"
+                  label={taskPriority}
+                  onClick={openTaskCardMenu}
+                  color={PriorityToColorMap[taskPriority]}
+                  className={classes.priorityChip}
                 />
-              </IconButton>
-            </ButtonGroup>
-
-            <Typography fontSize={16}>{title}</Typography>
-          </div>
-          {priority && (
-            <Chip
-              component="button"
-              label={taskPriority}
-              onClick={openTaskCardMenu}
-              color={PriorityToColorMap[taskPriority]}
-              className={classes.priorityChip}
+              )}
+            </div>
+          </Box>
+          <IconButton
+            onClick={(event) => {
+              event.stopPropagation();
+              onTaskOpen(id);
+            }}
+          >
+            <OpenInFull
+              style={{
+                fontSize: '12px',
+              }}
             />
-          )}
+          </IconButton>
         </div>
       </CardContent>
 

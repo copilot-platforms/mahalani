@@ -20,8 +20,8 @@ export const AdvancedSetup = ({ appSetupData, onConfigSave }: AdvancedSetupProps
   const handleToggleControl = (event: React.ChangeEvent<HTMLInputElement>) => {
     const targetId = event.target.id;
     const updatedControls = { ...controlState, [targetId]: !controlState[targetId] };
-    const updatedConfig = { ...appSetupData, controls: controlState };
     setControlState(updatedControls);
+    const updatedConfig = { ...appSetupData, controls: updatedControls };
     onConfigSave(updatedConfig); 
   }
 

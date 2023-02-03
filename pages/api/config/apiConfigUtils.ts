@@ -19,6 +19,7 @@ export const bucketParams = {
  * @returns 
  */
 export const fetchConfig = async (appId: string) => {
+  console.info('fetchConfig', appId)
   const params = { ...bucketParams, Key: `apps/${appId}/config.json` };
   try {
     const data = await s3Client.send(new GetObjectCommand(params));
