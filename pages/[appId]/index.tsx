@@ -195,11 +195,7 @@ export async function getServerSideProps(context) {
   }
 
   const appConfig = {
-    controls: appSetupData.controls || {
-      allowAddingItems: true,
-      allowDeletingItems: true,
-      allowEditingItems: true,
-    },
+    controls: appSetupData.controls,
     defaultChannelType: appSetupData.defaultChannelType || null,
   };
 
