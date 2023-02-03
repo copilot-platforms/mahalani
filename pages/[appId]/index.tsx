@@ -183,8 +183,6 @@ export async function getServerSideProps(context) {
     console.log('error fetching tasks', error);
   }
 
-  console.log("hmm pots", appSetupData);
-
   const appConfig = {
     controls: appSetupData.controls || '',
     defaultChannelType: appSetupData.defaultChannelType || null,
