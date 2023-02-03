@@ -20,6 +20,7 @@ export type Task = {
   status: TaskStatus;
   assignee?: AssigneeDataType;
   priority?: Priority;
+  rank: number;
   description?: string;
   attachments?: AirTableAttachment[] | null;
   learnMoreLink?: string | null;

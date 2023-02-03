@@ -129,7 +129,9 @@ const TodoList: React.FC<{
     const updatedTasks = {
       ...tasksByStatus,
       [existingStatus]: existingTasks.filter((task) => task.id !== id),
-      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }],
+      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }].sort(
+        (a, b) => a.rank - b.rank,
+      ),
     };
 
     setTasksByStatus(updatedTasks);
@@ -183,8 +185,7 @@ const TodoList: React.FC<{
    * Add event listeners for keyboard shortcuts.
    * Escape key closes the filter dialog.
    * Command + F opens the filter dialog.
-   * Command + B toggles to board view.
-   * Command + L toggles to list view.
+   * Command + B toggles between board view & list view.
    */
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
@@ -203,11 +204,8 @@ const TodoList: React.FC<{
       }
 
       if (e.key === 'b' && e.metaKey) {
-        setListViewMode(TodoListViewMode.Board);
-      }
-
-      if (e.key === 'l' && e.metaKey) {
-        setListViewMode(TodoListViewMode.List);
+        e.preventDefault();
+        handleToggleView();
       }
 
       if (e.key === 'u' && e.metaKey) {
@@ -369,12 +367,14 @@ const TodoList: React.FC<{
                         status,
                         priority,
                         id,
+                        rank,
                       }) => (
                         <>
                           <TaskCard
                             viewMode={listViewMode}
                             key={title}
                             title={title}
+                            rank={rank}
                             assignee={assignee}
                             description={description}
                             status={status}

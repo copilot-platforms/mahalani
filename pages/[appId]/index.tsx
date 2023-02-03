@@ -40,6 +40,7 @@ const loadAppData = async (
     status: record.fields.Status,
     assignee: clientData,
     priority: record.fields.Priority || '',
+    rank: rank,
     attachments: record.fields.attachments,
     description: record.fields.description,
     learnMoreLink: record.fields.learnMoreLink,
