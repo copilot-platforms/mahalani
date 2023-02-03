@@ -10,6 +10,7 @@ import { fetchConfig } from '../../api/config/apiConfigUtils';
 import { AdminLayout } from '../../../components/AdminLayout';
 import { Box, Button } from '@mui/material';
 import { AdvancedSetup } from '../../../components/AdvancedSetup';
+import { loadAssignees } from '../../api/config';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
@@ -27,7 +28,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
     appConfig,
   );
-  const [clientList, setClientList] = useState<any[]>(assignees || []);
+  const [assigneeList, setAssigneeList] = useState<any[]>(assignees || []);
 
   const handleSaveAppConfig = async (result: AppContextType) => {
     // when app setup is complete load clients.
@@ -46,7 +47,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
 
       const fetchConfigDataResponse = await fetch(`/api/config?appId=${appId}`);
       const fetchConfigData = await fetchConfigDataResponse.json();
-      setClientList(fetchConfigData);
+      setAssigneeList(fetchConfigData);
     } catch (ex) {
       console.error('error fetching app config info', ex);
     }
@@ -61,7 +62,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
     let paramName = 'clientId'
     defaultChannel === 'companies' ? paramName = 'companyId' : null
 
-    return (assignees || []).map((assignee) => ({
+    return (assigneeList || []).map((assignee) => ({
       id: assignee.id,
       clientName: assignee.givenName ? `${assignee.givenName} ${assignee.familyName}` : assignee.name, // if assignee is client, return full name
       url: `https://mahalani.vercel.app/${appId}?${paramName}=${assignee.id}`,
@@ -91,10 +92,12 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
               clientsRows={setRowsForDefaultChannelType()}
             />
           </React.Fragment>
-          <AdvancedSetup
-            appSetupData={appSetupData}
-            onConfigSave={handleSaveAppConfig}
-          />
+          {appSetupData && (
+            <AdvancedSetup
+              appSetupData={appSetupData}
+              onConfigSave={handleSaveAppConfig}
+            />
+          )}
           <React.Fragment>
             <Button
               onClick={() => signOut()}
@@ -126,35 +129,7 @@ export async function getServerSideProps(context) {
   let assigneeData = null;
   try {
     appConfig = await fetchConfig(appId);
-
-    const copilotGetReq = {
-      headers: {
-        'X-API-KEY': appConfig.copilotApiKey,
-        'Content-Type': 'application/json',
-      },
-    };
-
-    const clientRes = await fetch(
-      `https://api.copilot-staging.com/v1/client`,
-      copilotGetReq,
-    );
-
-    const companyRes = await fetch(
-      `https://api.copilot-staging.com/v1/company`,
-      copilotGetReq
-    )
-
-    // get all companies from a portal
-    const allCompanies = (await companyRes.json()).data;
-
-    // create list of valid companies
-    const companyData = []
-    const companyList = await allCompanies.forEach((company) => {
-      company.name.length > 0 ? companyData.push(company) : null
-    })
-
-    // concatenate assignees and companies
-    assigneeData = (await clientRes.json()).data.concat(companyData);
+    assigneeData = await loadAssignees(appConfig)
   } catch (ex) {
     console.error('error fetching user apps', ex);
   }
