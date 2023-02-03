@@ -37,6 +37,8 @@ const loadAppData = async (
     id: record.id,
     title: record.fields.Name,
     status: record.fields.Status,
+    assignee: clientData,
+    priority: record.fields.Priority,
   }));
   return tasksList;
 };
@@ -120,7 +122,7 @@ export async function getServerSideProps(context) {
   //check if data returned
   const checkDataLength = (dataObj) => {
     let dataLength
-    dataObj.data ? dataLength = Object.keys(dataObj.data).length : Object.keys(dataObj).length 
+    dataObj.data ? dataLength = Object.keys(dataObj.data).length : Object.keys(dataObj).length
     dataObj.code === "not_found" ? dataLength = 0 : null
     return dataLength
   }

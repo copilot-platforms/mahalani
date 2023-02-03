@@ -4,12 +4,11 @@ import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
 import AppSetup from '../../../components/AppSetup';
 import Layout from '../../../components/Layout';
-import DataTable from '../../../components/DataTable';
 import { AppContext, AppContextType } from '../../../utils/appContext';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { fetchConfig } from '../../api/config/apiConfigUtils';
 import { AdminLayout } from '../../../components/AdminLayout';
-import { Typography, Box, Button } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
@@ -27,32 +26,42 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
     appConfig,
   );
+  const [clientList, setClientList] = useState<any[]>(clients || []);
 
-  const handleSetupComplete = (result: AppContextType) => {
-    fetch(`/api/config`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        id: appId,
-        ...result,
-      }),
-    });
-    setAppSetupData(result);
+  const handleSetupComplete = async (result: AppContextType) => {
+    // when app setup is complete load clients.
+    try {
+      await fetch(`/api/config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: appId,
+          ...result,
+        }),
+      });
+      setAppSetupData(result);
+
+      const fetchConfigDataResponse = await fetch(`/api/config?appId=${appId}`);
+      const fetchConfigData = await fetchConfigDataResponse.json();
+      setClientList(fetchConfigData);
+    } catch (ex) {
+      console.error('error fetching app config info', ex);
+    }
   };
 
-/* Changes the param name in the URLs displayed after app setup is complete based on the default channel type
-*/
+  /* Changes the param name in the URLs displayed after app setup is complete based on the default channel type
+  */
   const isCompany = false // <---- need to set this based on user input, hardcoded for now
-  
+
   const setRowsForDefaultChannelType = () => {
     let paramName = 'clientId'
     isCompany ? paramName = 'companyId' : null
 
     return (assignees || []).map((assignee) => ({
       id: assignee.id,
-      clientName: assignee.givenName? `${assignee.givenName} ${assignee.familyName}`: assignee.name, // if assignee is client, return full name
+      clientName: assignee.givenName ? `${assignee.givenName} ${assignee.familyName}` : assignee.name, // if assignee is client, return full name
       url: `https://mahalani.vercel.app/${appId}?${paramName}=${assignee.id}`,
     }));
   }
@@ -76,7 +85,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
             />
           </React.Fragment>
           <React.Fragment>
-          <Button
+            <Button
               onClick={() => signOut()}
               color="primary"
             >
@@ -125,12 +134,12 @@ export async function getServerSideProps(context) {
     )
 
     // get all companies from a portal
-    const allCompanies = (await companyRes.json()).data; 
+    const allCompanies = (await companyRes.json()).data;
 
     // create list of valid companies
     const companyData = []
     const companyList = await allCompanies.forEach((company) => {
-      company.name.length > 0 ? companyData.push(company): null
+      company.name.length > 0 ? companyData.push(company) : null
     })
 
     // concatenate assignees and companies
