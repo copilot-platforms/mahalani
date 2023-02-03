@@ -56,9 +56,10 @@ export const TodoListFilterContext = createContext<{
   setFilter: () => {},
 });
 
-const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
+const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: () => void }> = ({
   tasks,
   title,
+  onUpdateAction,
 }) => {
   const router = useRouter();
   const { appId } = router.query;
@@ -130,6 +131,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
 
     setTasksByStatus(updatedTasks);
 
+    onUpdateAction();
     try {
       await fetch(`/api/data?appId=${appId}&recordId=${id}`, {
         method: 'PATCH',
@@ -292,6 +294,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     }));
 
     try {
+      onUpdateAction();
       await fetch(`/api/data?appId=${appId}`, {
         method: 'POST',
         headers: {

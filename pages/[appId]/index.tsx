@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import Layout from '../../components/Layout';
 import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
@@ -43,14 +43,27 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
   const { appId } = router.query;
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
   const refreshAppData = async () => {
+    const triggerPoolItem = new Date().getTime();
     const getAppDataResult = await fetch(`/api/data?appId=${appId}&assigneeId=${clientData?.id}`, {
       method: 'GET',
     })
     const appData = await getAppDataResult.json();
     const tasks = formatData(clientData, appData);
 
+    if (triggerPoolItem < lastActionTime.current) {
+      return;
+    }
+
     setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title);
+    lastActionTime.current = new Date().getTime();
   };
+
+  const lastActionTime = useRef(new Date().getTime());
+
+  const handleUpdateAction = () => {
+    // track the last time the user updated an action
+    lastActionTime.current = new Date().getTime();
+  }
 
   useEffect(() => {
     if (!clientData) {
@@ -74,7 +87,7 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
   return (
     <AppContext.Provider value={appConfig}>
       <Layout title="Custom App - Task Management">
-        <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
+        <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} onUpdateAction={handleUpdateAction} />
       </Layout>
     </AppContext.Provider>
   );
