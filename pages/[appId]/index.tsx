@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Layout from '../../components/Layout';
 import { getAirtableClient, getAllRecords } from '../../utils/airtableUtils';
 import TodoList from '../../components/TodoList';
@@ -51,7 +51,6 @@ const loadAppData = async (
 
 const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
-
   const refreshAppData = async () => {
     const tasks = await loadAppData(appSetupData, clientData);
     setTaskList(tasks);
@@ -72,13 +71,14 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     };
   }, []);
 
-  const clientFullName = clientData ? `${clientData.givenName} ${clientData.familyName}` : '';
+  const clientFullName = clientData
+    ? `${clientData.givenName} ${clientData.familyName}`
+    : '';
 
   return (
     <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
         <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
-
       </Layout>
     </AppContext.Provider>
   );

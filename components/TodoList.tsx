@@ -13,11 +13,17 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AppContext } from '../utils/appContext';
-import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
+import {
+  addRecord,
+  getAirtableClient,
+  updateRecord,
+} from '../utils/airtableUtils';
 import { TaskListToolbar } from './TaskListToolbar';
 import { FilterTodoListDialog } from './FilterTodoListDialog';
 import clsx from 'clsx';
 import { makeStyles } from '../utils/makeStyles';
+import { AddTaskButton } from './AddTaskButton';
+import { AddTaskCardForm } from './AddTaskCard';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -63,6 +69,9 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     appSetupData.airtableApiKey,
     appSetupData.baseId,
   );
+
+  const tableClient = airtableClient(appSetupData.tableId);
+
   const [listViewMode, setListViewMode] = useState<TodoListViewMode>(
     TodoListViewMode.Board,
   );
@@ -119,8 +128,6 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
 
     setTasksByStatus(updatedTasks);
 
-    const tableClient = airtableClient(appSetupData.tableId);
-
     try {
       await updateRecord(tableClient, id, {
         Status: newStatus,
@@ -168,6 +175,11 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         setOpenFilterDialog(false);
+        setShowAddTaskOnColumn({
+          [TaskStatus.Todo]: false,
+          [TaskStatus.InProgress]: false,
+          [TaskStatus.Done]: false,
+        });
       }
 
       if (e.key === 'f' && e.metaKey) {
@@ -181,6 +193,30 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
 
       if (e.key === 'l' && e.metaKey) {
         setListViewMode(TodoListViewMode.List);
+      }
+
+      if (e.key === 'u' && e.metaKey) {
+        e.preventDefault();
+        setShowAddTaskOnColumn((currentState) => ({
+          ...currentState,
+          [TaskStatus.Todo]: true,
+        }));
+      }
+
+      if (e.key === 'i' && e.metaKey) {
+        e.preventDefault();
+        setShowAddTaskOnColumn((currentState) => ({
+          ...currentState,
+          [TaskStatus.InProgress]: true,
+        }));
+      }
+
+      if (e.key === 'd' && e.metaKey) {
+        e.preventDefault();
+        setShowAddTaskOnColumn((currentState) => ({
+          ...currentState,
+          [TaskStatus.Done]: true,
+        }));
       }
     });
 
@@ -221,6 +257,38 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
       </Container>
     );
   }
+
+  const [showAddTaskOnColumn, setShowAddTaskOnColumn] = useState<
+    Record<TaskStatus, boolean>
+  >({
+    [TaskStatus.Todo]: false,
+    [TaskStatus.InProgress]: false,
+    [TaskStatus.Done]: false,
+  });
+
+  const handleAddTaskClick = (columnStatus: TaskStatus) => {
+    setShowAddTaskOnColumn((currentState) => ({
+      ...currentState,
+      [columnStatus]: true,
+    }));
+  };
+
+  const handleAddTask = async (task: Task) => {
+    setShowAddTaskOnColumn((currentState) => ({
+      ...currentState,
+      [task.status]: false,
+    }));
+
+    try {
+      await addRecord(tableClient, {
+        Name: task.title,
+        Status: task.status || TaskStatus.Todo,
+        'Relevant Client ID': ['recWpzCd86WcTM4Fc'],
+      });
+    } catch (error) {
+      console.error('Error adding record', error);
+    }
+  };
 
   return (
     <div>
@@ -280,21 +348,36 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                         priority,
                         id,
                       }) => (
-                        <TaskCard
-                          viewMode={listViewMode}
-                          key={title}
-                          title={title}
-                          assignee={assignee}
-                          description={description}
-                          status={status}
-                          priority={priority}
-                          id={id}
-                          onStatusChange={(newStatus: TaskStatus) =>
-                            handleStatusChanged(id, status, newStatus)
-                          }
-                        />
+                        <>
+                          <TaskCard
+                            viewMode={listViewMode}
+                            key={title}
+                            title={title}
+                            assignee={assignee}
+                            description={description}
+                            status={status}
+                            priority={priority}
+                            id={id}
+                            onStatusChange={(newStatus: TaskStatus) =>
+                              handleStatusChanged(id, status, newStatus)
+                            }
+                          />
+                        </>
                       ),
                     )}
+                    <>
+                      {showAddTaskOnColumn[status] && (
+                        <AddTaskCardForm
+                          onAddTask={handleAddTask}
+                          columnStatus={status as TaskStatus}
+                        />
+                      )}
+                      <AddTaskButton
+                        onClick={() => {
+                          handleAddTaskClick(status as TaskStatus);
+                        }}
+                      />
+                    </>
                   </TaskColumn>
                 </Grid>
               ))}
