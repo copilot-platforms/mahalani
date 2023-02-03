@@ -1,42 +1,25 @@
 import { useState, useEffect, useContext } from 'react';
 import Layout from '../../components/Layout';
-import { getAirtableClient, getAllRecords } from '../../utils/airtableUtils';
 import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
-import { AppContext, AppContextType } from '../../utils/appContext';
+import { AppContext, AppContextType, ClientAppConfig } from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
 import * as _ from 'lodash';
+import { useRouter } from 'next/router';
+import { loadAppData } from '../api/data';
 
 type AppPagePros = {
   clientData: AssigneeDataType | null;
   tasks: Array<Task>;
-  appSetupData: AppContextType;
+  appConfig: ClientAppConfig;
 };
 
 const DATA_REFRESH_TIMEOUT = 3000;
 
-const loadAppData = async (
-  appData: AppContextType,
-  clientData: AssigneeDataType,
-) => {
-  const baseConstructor = getAirtableClient(
-    appData.airtableApiKey,
-    appData.baseId,
-  );
-  const tableClient = baseConstructor(appData.tableId);
-
-  const airtableRecords = await getAllRecords(
-    tableClient,
-    appData.viewId,
-    `{Client ID} = "${clientData.id}"`,
-  );
-
-  console.info('airtableRecords', airtableRecords);
-
-  // format the data coming from airtable to fit the task data struct
-  const tasksList: Array<Task> = airtableRecords.map((record, rank) => ({
+const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
+  const formattedData: Array<Task> = airtableRecords.map((record, rank) => ({
     id: record.id,
-    title: record.fields.Name,
+    title: record.fields.Name || '',
     status: record.fields.Status,
     assignee: clientData,
     priority: record.fields.Priority || '',
@@ -46,7 +29,7 @@ const loadAppData = async (
     learnMoreLink: record.fields.learnMoreLink,
     clientIdRef: record.fields['Relevant Client ID'],
   }));
-  return tasksList;
+  return formattedData;
 };
 
 /**
@@ -55,16 +38,22 @@ const loadAppData = async (
  * @returns
  */
 
-const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
+const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
+  const router = useRouter();
+  const { appId } = router.query;
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
   const refreshAppData = async () => {
-    const tasks = await loadAppData(appSetupData, clientData);
+    const getAppDataResult = await fetch(`/api/data?appId=${appId}&assigneeId=${clientData?.id}`, {
+      method: 'GET',
+    })
+    const appData = await getAppDataResult.json();
+    const tasks = formatData(clientData, appData);
 
-    setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
+    setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title);
   };
 
   useEffect(() => {
-    if (!appSetupData || !clientData) {
+    if (!clientData) {
       return;
     }
 
@@ -83,7 +72,7 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     : '';
 
   return (
-    <AppContext.Provider value={appSetupData}>
+    <AppContext.Provider value={appConfig}>
       <Layout title="Custom App - Task Management">
         <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
       </Layout>
@@ -175,17 +164,24 @@ export async function getServerSideProps(context) {
   // -----------GET TASKS----------------
   let tasks: Array<Task> = [];
   try {
-    tasks = await loadAppData(appSetupData, clientData);
+    const airtableData = await loadAppData(appSetupData, clientData?.id)
+    tasks = formatData(clientData, airtableData);
   } catch (error) {
     console.log('error fetching tasks', error);
   }
+
+  const appConfig = {
+    controls: appSetupData.controls,
+  }
+
+  console.info('loaded tasks', tasks.length);
 
   // -----------PROPS-----------------------------
   return {
     props: {
       clientData,
       tasks: JSON.parse(JSON.stringify(tasks)),
-      appSetupData,
+      appConfig,
     },
   };
 }

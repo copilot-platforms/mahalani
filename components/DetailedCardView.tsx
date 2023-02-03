@@ -1,4 +1,9 @@
-import { Button, Card, CardMedia, CardContent, Typography, CardActions } from '@mui/material';
+import { Button, Card, CardMedia, CardContent, Typography, CardActions, Chip } from '@mui/material';
+import {
+  SignalCellularAlt1Bar,
+  SignalCellularAlt2Bar,
+} from '@mui/icons-material';
+import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 import { Task } from './types';
 
 type DetailedCardViewProps = {
@@ -42,7 +47,7 @@ export const DetailedCardView = ({ task }: DetailedCardViewProps) => {
       </CardContent>
       {learnMoreLink && (
         <CardActions>
-          <Button size="small" href={learnMoreLink}>Learn More</Button>
+          <Button target="_blank" size="small" href={learnMoreLink}>Learn More</Button>
         </CardActions>
       )}
       

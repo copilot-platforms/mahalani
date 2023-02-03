@@ -155,7 +155,6 @@ export async function getServerSideProps(context) {
 
     // concatenate assignees and companies
     assigneeData = (await clientRes.json()).data.concat(companyData);
-    // console.log(`all data: ${assigneeData}`);
   } catch (ex) {
     console.error('error fetching user apps', ex);
   }

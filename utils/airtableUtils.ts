@@ -93,8 +93,10 @@ export const updateRecord = async (
 ) => {
   // do partial update on airtable record for provided fields
   const record = await table.update(recordId, fields);
+  return record
 };
 
 export const addRecord = async (table: Table<FieldSet>, fields: FieldSet) => {
   const newRecord = await table.create(fields);
+  return newRecord
 };

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { fetchConfig } from '../config/apiConfigUtils';
-import { getAirtableClient, getAllRecords, updateRecord } from '../../../utils/airtableUtils';
+import { addRecord, getAirtableClient, getAllRecords, updateRecord } from '../../../utils/airtableUtils';
 import { AppContextType } from '../../../utils/appContext';
 
 
@@ -20,7 +20,7 @@ export const loadAppData = async (
     `{Client ID} = "${clientId}"`,
   );
 
-  console.info('airtableRecords', airtableRecords);
+  console.info('num airtableRecords', airtableRecords.length);
 
   return airtableRecords;
 };
@@ -52,17 +52,42 @@ const handleGetData = async (req: NextApiRequest, res: NextApiResponse) => {
   return res.status(400).end();
 }
 
+const handlePostData = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    const appSetupData = await fetchConfig(req.query.appId as string);
+
+    // Get the airtable rest client instance
+    const airtableClient = getAirtableClient(
+      appSetupData.airtableApiKey,
+      appSetupData.baseId,
+    );
+
+    const tableClient = airtableClient(appSetupData.tableId);
+    const record = await addRecord(tableClient, req.body);
+    res.status(200).json(record);
+  } catch (ex) {
+    console.error('Error updating record', ex);
+  }
+  return res.status(500).end();
+}
+
 const handlePatchData = async (req: NextApiRequest, res: NextApiResponse) => {
-  const appSetupData = await fetchConfig(req.query.appId as string);
+  try {
+    const appSetupData = await fetchConfig(req.query.appId as string);
 
-  // Get the airtable rest client instance
-  const airtableClient = getAirtableClient(
-    appSetupData.airtableApiKey,
-    appSetupData.baseId,
-  );
+    // Get the airtable rest client instance
+    const airtableClient = getAirtableClient(
+      appSetupData.airtableApiKey,
+      appSetupData.baseId,
+    );
 
-  const tableClient = airtableClient(appSetupData.tableId);
-  updateRecord(tableClient, req.query.recordId as string, req.body);
+    const tableClient = airtableClient(appSetupData.tableId);
+    const record = await updateRecord(tableClient, req.query.recordId as string, req.body);
+    res.status(200).json(record);
+  } catch (ex) {
+    console.error('Error updating record', ex);
+  }
+  return res.status(500).end();
 };
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
@@ -71,6 +96,8 @@ const handler = (req: NextApiRequest, res: NextApiResponse) => {
       return handleGetData(req, res)
     case 'PATCH':
       return handlePatchData(req, res)
+    case 'POST':
+      return handlePostData(req, res)
     default:
       return res.status(405).end()
   }
