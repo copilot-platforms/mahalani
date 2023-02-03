@@ -54,7 +54,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
   const [activeStep, setActiveStep] = useState(
     appSetupData ? SetupSteps.GetStarted : SetupSteps.ProvideApiKeys,
   );
-  const classes = useStyles({
+  const { classes } = useStyles({
     cardWidth: clientsRows.length > 0 ? 800 : 350,
   });
   const [airtableApiKey, setAirtableApiKey] = useState('');
