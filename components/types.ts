@@ -9,13 +9,21 @@ export enum Priority {
   Low = 'Low',
 }
 
+type AirTableAttachment = {
+  type: string;
+  url: string;
+}
+
 export type Task = {
   id?: string;
   title: string;
   status: TaskStatus;
   assignee?: AssigneeDataType;
   priority?: Priority;
+  rank: number;
   description?: string;
+  attachments?: AirTableAttachment[] | null;
+  learnMoreLink?: string | null;
 };
 
 export type AssigneeDataType = {

@@ -52,6 +52,7 @@ const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
 interface TaskCardProps extends Task {
   onStatusChange: (status: TaskStatus) => void;
   viewMode: TodoListViewMode;
+  onTaskOpen: (id: string) => void;
 }
 
 const PriorityToColorMap = {
@@ -84,6 +85,7 @@ const TaskCard = ({
   id,
   onStatusChange,
   viewMode,
+  onTaskOpen,
 }: TaskCardProps) => {
   const { classes } = useStyles({ viewMode });
 
@@ -114,8 +116,13 @@ const TaskCard = ({
 
   // TODO: turn this back on once we want to actually allow clients to edit priority
   const openTaskCardMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     return;
   };
+
+  const openTaskCard = () => {
+    onTaskOpen(id);
+  }
 
   return (
     <Card
@@ -128,6 +135,7 @@ const TaskCard = ({
       style={{
         opacity: opacity,
       }}
+      onClick={openTaskCard}
     >
       <CardContent>
         <div
@@ -142,6 +150,7 @@ const TaskCard = ({
             <ButtonGroup>
               <IconButton
                 onClick={(event) => {
+                  event.stopPropagation();
                   setMenuAnchorEl(event.currentTarget);
                 }}
               >

@@ -5,6 +5,7 @@ import {
   IconButton,
   Theme,
   Typography,
+  Dialog,
 } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
@@ -18,6 +19,7 @@ import { TaskListToolbar } from './TaskListToolbar';
 import { FilterTodoListDialog } from './FilterTodoListDialog';
 import clsx from 'clsx';
 import { makeStyles } from '../utils/makeStyles';
+import { DetailedCardView } from './DetailedCardView';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -67,7 +69,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     TodoListViewMode.Board,
   );
   const [searchFilter, setSearchFilter] = useState('');
-
+  const [selectedTask, setSelectedTask] = useState<Task>(null);
   const [openFilterDialog, setOpenFilterDialog] = useState(false);
   const isListViewMode = listViewMode === TodoListViewMode.List;
 
@@ -114,7 +116,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     const updatedTasks = {
       ...tasksByStatus,
       [existingStatus]: existingTasks.filter((task) => task.id !== id),
-      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }],
+      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }].sort((a, b) => a.rank - b.rank),
     };
 
     setTasksByStatus(updatedTasks);
@@ -158,11 +160,19 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
   };
 
   /**
+   * handle task card opened
+   */
+  const handleTaskOpen = (taskId: string) => {
+    // when a taskId is selected we should set the state for the currently select task and use that
+    // to show the dialog
+    setSelectedTask(tasks.find(t => t.id === taskId) || null);
+  }
+
+  /**
    * Add event listeners for keyboard shortcuts.
    * Escape key closes the filter dialog.
    * Command + F opens the filter dialog.
-   * Command + B toggles to board view.
-   * Command + L toggles to list view.
+   * Command + B toggles between board view & list view.
    */
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
@@ -176,11 +186,8 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
       }
 
       if (e.key === 'b' && e.metaKey) {
-        setListViewMode(TodoListViewMode.Board);
-      }
-
-      if (e.key === 'l' && e.metaKey) {
-        setListViewMode(TodoListViewMode.List);
+        e.preventDefault();
+        handleToggleView();
       }
     });
 
@@ -279,6 +286,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                         status,
                         priority,
                         id,
+                        rank,
                       }) => (
                         <TaskCard
                           viewMode={listViewMode}
@@ -288,7 +296,9 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                           description={description}
                           status={status}
                           priority={priority}
+                          rank={rank}
                           id={id}
+                          onTaskOpen={handleTaskOpen}
                           onStatusChange={(newStatus: TaskStatus) =>
                             handleStatusChanged(id, status, newStatus)
                           }
@@ -302,6 +312,14 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
           </div>
         </TodoListFilterContext.Provider>
       </DndProvider>
+      {selectedTask && (<Dialog
+        open
+        onClose={() => setSelectedTask(null)}
+      >
+        <DetailedCardView
+          task={selectedTask}
+        />
+      </Dialog>)}
     </div>
   );
 };
