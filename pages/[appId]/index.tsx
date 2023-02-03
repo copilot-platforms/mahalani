@@ -2,12 +2,12 @@ import { useState, useEffect, useContext } from 'react';
 import Layout from '../../components/Layout';
 import { getAirtableClient, getAllRecords } from '../../utils/airtableUtils';
 import TodoList from '../../components/TodoList';
-import { ClientDataType, Task } from '../../components/types';
+import { AssigneeDataType, Task } from '../../components/types';
 import { AppContext, AppContextType } from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
 
 type AppPagePros = {
-  clientData: ClientDataType | null;
+  clientData: AssigneeDataType | null;
   tasks: Array<Task>;
   appSetupData: AppContextType;
 };
@@ -16,7 +16,7 @@ const DATA_REFRESH_TIMEOUT = 3000;
 
 const loadAppData = async (
   appData: AppContextType,
-  clientData: ClientDataType,
+  clientData: AssigneeDataType,
 ) => {
   const baseConstructor = getAirtableClient(
     appData.airtableApiKey,
@@ -33,12 +33,15 @@ const loadAppData = async (
   console.info('airtableRecords', airtableRecords);
 
   // format the data coming from airtable to fit the task data struct
-  const tasksList: Array<Task> = airtableRecords.map((record) => ({
+  const tasksList: Array<Task> = airtableRecords.map((record, rank) => ({
     id: record.id,
     title: record.fields.Name,
     status: record.fields.Status,
     assignee: clientData,
-    priority: record.fields.Priority,
+    priority: record.fields.Priority || '',
+    attachments: record.fields.attachments,
+    description: record.fields.description,
+    learnMoreLink: record.fields.learnMoreLink,
   }));
   return tasksList;
 };
@@ -118,6 +121,16 @@ export async function getServerSideProps(context) {
 
   const companyId = context.query.companyId;
 
+  //check if data returned
+  const checkDataLength = (dataObj) => {
+    let dataLength;
+    dataObj.data
+      ? (dataLength = Object.keys(dataObj.data).length)
+      : Object.keys(dataObj).length;
+    dataObj.code === 'not_found' ? (dataLength = 0) : null;
+    return dataLength;
+  };
+
   if (clientId !== undefined) {
     const clientRes = await fetch(
       `https://api.copilot-staging.com/v1/client/${clientId}`,
@@ -125,14 +138,32 @@ export async function getServerSideProps(context) {
     );
 
     clientData = await clientRes.json();
-    console.log(`CLIENT DATA: ${JSON.stringify(clientData)}`);
+
+    // call company endpoint if  no data returned for client
+    if (checkDataLength(clientData) <= 0) {
+      const clientCompanyRes = await fetch(
+        `https://api.copilot-staging.com/v1/company/${clientId}`,
+        copilotGetReq,
+      );
+
+      clientData = await clientCompanyRes.json();
+    }
   } else if (companyId !== undefined) {
     const companyRes = await fetch(
       `https://api.copilot-staging.com/v1/company/${companyId}`,
       copilotGetReq,
     );
-    // const companyData = await companyRes.json()
-    // searchId = companyData.name
+    clientData = await companyRes.json();
+
+    // call client endpoint if  no data returned for company
+    if (checkDataLength(clientData) <= 0) {
+      const clientCompanyRes = await fetch(
+        `https://api.copilot-staging.com/v1/client/${companyId}`,
+        copilotGetReq,
+      );
+
+      clientData = await clientCompanyRes.json();
+    }
   } else {
     console.log('No ID Found');
   }
@@ -149,7 +180,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       clientData,
-      tasks,
+      tasks: JSON.parse(JSON.stringify(tasks)),
       appSetupData,
     },
   };

@@ -5,6 +5,7 @@ import CopilotLogo from '../assets/Copilot_Icon_Circle.png';
 
 type AdminLayoutProps = {
   description: string;
+  link?: string;
   showTitle?: boolean;
   children: React.ReactNode;
 };
@@ -12,6 +13,7 @@ type AdminLayoutProps = {
 export const AdminLayout = ({
   description,
   showTitle = true,
+  link,
   children,
 }: AdminLayoutProps) => {
   return (
@@ -34,6 +36,9 @@ export const AdminLayout = ({
         <Box mt={2}>
           <Typography variant="h6" textAlign="center">
             {description}
+          </Typography>
+          <Typography variant="h6" textAlign="center">
+            {link}
           </Typography>
         </Box>
         <Box

@@ -12,7 +12,7 @@ import { Box, Button } from '@mui/material';
 
 type AppSetupPageProps = {
   appConfig: AppContextType | null;
-  clients: any[] | null;
+  assignees: any[] | null;
 };
 
 /**
@@ -20,13 +20,13 @@ type AppSetupPageProps = {
  * page or the app itself (which gets some client information).
  * @returns
  */
-const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
+const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
   const router = useRouter();
   const { appId } = router.query;
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
     appConfig,
   );
-  const [clientList, setClientList] = useState<any[]>(clients || []);
+  const [clientList, setClientList] = useState<any[]>(assignees || []);
 
   const handleSetupComplete = async (result: AppContextType) => {
     // when app setup is complete load clients.
@@ -51,11 +51,20 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
     }
   };
 
-  const myRows = clientList.map((client) => ({
-    id: client.id,
-    clientName: `${client.givenName} ${client.familyName}`,
-    url: `https://mahalani.vercel.app/${appId}?clientId=${client.id}`,
-  }));
+  /* Changes the param name in the URLs displayed after app setup is complete based on the default channel type
+  */
+  const isCompany = false // <---- need to set this based on user input, hardcoded for now
+
+  const setRowsForDefaultChannelType = () => {
+    let paramName = 'clientId'
+    isCompany ? paramName = 'companyId' : null
+
+    return (assignees || []).map((assignee) => ({
+      id: assignee.id,
+      clientName: assignee.givenName ? `${assignee.givenName} ${assignee.familyName}` : assignee.name, // if assignee is client, return full name
+      url: `https://mahalani.vercel.app/${appId}?${paramName}=${assignee.id}`,
+    }));
+  }
 
   return (
     <AppContext.Provider value={appSetupData}>
@@ -64,7 +73,12 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
           showTitle={false}
           description={
             appSetupData
-              ? `Your app is setup! You can embed it as a Custom App in Copilot using the following url: https://mahalani.vercel.app/${appId}`
+              ? 'Your app is setup! You can embed it as a Custom App in Copilot using the following url:'
+              : ''
+          }
+          link={
+            appSetupData
+              ? `https://mahalani.vercel.app/${appId}`
               : ''
           }
         >
@@ -72,11 +86,11 @@ const AppSetupPage = ({ appConfig, clients }: AppSetupPageProps) => {
             <AppSetup
               onSetupComplete={handleSetupComplete}
               appSetupData={appSetupData}
-              clientsRows={myRows}
+              clientsRows={setRowsForDefaultChannelType()}
             />
           </React.Fragment>
           <React.Fragment>
-          <Button
+            <Button
               onClick={() => signOut()}
               color="primary"
             >
@@ -103,7 +117,7 @@ export async function getServerSideProps(context) {
 
   const { appId } = context.query;
   let appConfig: AppContextType | null = null;
-  let clientData = null;
+  let assigneeData = null;
   try {
     appConfig = await fetchConfig(appId);
 
@@ -119,8 +133,23 @@ export async function getServerSideProps(context) {
       copilotGetReq,
     );
 
-    clientData = (await clientRes.json()).data;
-    console.log(clientData);
+    const companyRes = await fetch(
+      `https://api.copilot-staging.com/v1/company`,
+      copilotGetReq
+    )
+
+    // get all companies from a portal
+    const allCompanies = (await companyRes.json()).data;
+
+    // create list of valid companies
+    const companyData = []
+    const companyList = await allCompanies.forEach((company) => {
+      company.name.length > 0 ? companyData.push(company) : null
+    })
+
+    // concatenate assignees and companies
+    assigneeData = (await clientRes.json()).data.concat(companyData);
+    console.log(`all data: ${assigneeData}`);
   } catch (ex) {
     console.error('error fetching user apps', ex);
   }
@@ -128,7 +157,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       appConfig,
-      clients: clientData,
+      assignees: assigneeData,
     },
   };
 }
