@@ -12,7 +12,8 @@ export type AppContextType = {
     baseId: string;
     tableId: string;
     viewId: string;
-    controls?: AppSetupControls
+    defaultChannelType: string;
+    controls?: AppSetupControls;
 };
 
 export const AppContext = React.createContext<AppContextType | null>(null);
