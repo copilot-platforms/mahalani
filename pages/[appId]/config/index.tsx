@@ -26,7 +26,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
   const [appSetupData, setAppSetupData] = useState<AppContextType | null>(
     appConfig,
   );
-  const [clientList, setClientList] = useState<any[]>(clients || []);
+  const [clientList, setClientList] = useState<any[]>(assignees || []);
 
   const handleSetupComplete = async (result: AppContextType) => {
     // when app setup is complete load clients.
