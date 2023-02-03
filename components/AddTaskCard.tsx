@@ -1,14 +1,5 @@
 import { Card, css, TextField } from '@mui/material';
-import { makeStyles } from '../utils/makeStyles';
 import { Task, TaskStatus } from './types';
-
-// const useStyles = makeStyles()((theme) => ({
-//   input: {
-//     '& .MuiOutlinedInput-input': {
-//       padding: '10px 14px',
-//     },
-//   },
-// }));
 
 export const AddTaskCardForm = ({
   onAddTask,
@@ -17,7 +8,6 @@ export const AddTaskCardForm = ({
   onAddTask: (task: Task) => void;
   columnStatus: TaskStatus;
 }) => {
-  // const { classes } = useStyles();
   return (
     <Card
       elevation={0}
@@ -32,9 +22,6 @@ export const AddTaskCardForm = ({
       `}
     >
       <TextField
-        // classes={{
-        //   root: classes.input,
-        // }}
         placeholder="Task title here..."
         variant="outlined"
         size="small"
@@ -43,7 +30,7 @@ export const AddTaskCardForm = ({
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             onAddTask({
-              title: e.target.value,
+              title: (e.target as HTMLInputElement).value,
               status: columnStatus,
             });
           }
