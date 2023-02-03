@@ -1,5 +1,4 @@
 import { ButtonGroup, Divider, IconButton, Theme } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import { TodoListViewMode } from './types';
 import ListOutlinedIcon from '@mui/icons-material/ListOutlined';
 import ViewWeekOutlinedIcon from '@mui/icons-material/ViewWeekOutlined';
@@ -7,8 +6,9 @@ import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 import { FilterListOffOutlined } from '@mui/icons-material';
 import { useContext } from 'react';
 import { TodoListFilterContext } from './TodoList';
+import { makeStyles } from '../utils/makeStyles';
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     padding: theme.spacing(1, 2),
     display: 'flex',
@@ -20,6 +20,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     boxShadow: '0px 0px 24px rgba(0, 0, 0, 0.07)',
   },
 }));
+
 export const TaskListToolbar = ({
   onToggleViewClick,
   onFilterClick,
@@ -31,7 +32,7 @@ export const TaskListToolbar = ({
   title: string;
   viewMode: TodoListViewMode;
 }) => {
-  const classes = useStyles();
+  const { classes } = useStyles();
   const { filter: searchTerm, setFilter } = useContext(TodoListFilterContext);
 
   const todoListHasFilter = searchTerm && searchTerm.length > 0;
