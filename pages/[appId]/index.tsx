@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Layout from '../../components/Layout';
 import { getAirtableClient, getAllRecords } from '../../utils/airtableUtils';
 import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
 import { AppContext, AppContextType } from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
+import * as _ from 'lodash';
 
 type AppPagePros = {
   clientData: AssigneeDataType | null;
@@ -43,6 +44,7 @@ const loadAppData = async (
     attachments: record.fields.attachments,
     description: record.fields.description,
     learnMoreLink: record.fields.learnMoreLink,
+    clientIdRef: record.fields['Relevant Client ID'],
   }));
   return tasksList;
 };
@@ -55,10 +57,10 @@ const loadAppData = async (
 
 const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
-
   const refreshAppData = async () => {
     const tasks = await loadAppData(appSetupData, clientData);
-    setTaskList(tasks);
+
+    setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
   };
 
   useEffect(() => {
@@ -76,13 +78,14 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     };
   }, []);
 
-  // if assignee object has name property (company), name displayed is company, client if not
-  const assigneeName = clientData?.name ? clientData.name : `${clientData?.givenName} ${clientData?.familyName}`;
+  const clientFullName = clientData
+    ? `${clientData.givenName} ${clientData.familyName}`
+    : '';
 
   return (
     <AppContext.Provider value={appSetupData}>
       <Layout title="Custom App - Task Management">
-        <TodoList title={`${assigneeName}'s tasks`} tasks={taskLists} />
+        <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} />
       </Layout>
     </AppContext.Provider>
   );
@@ -124,11 +127,13 @@ export async function getServerSideProps(context) {
 
   //check if data returned
   const checkDataLength = (dataObj) => {
-    let dataLength
-    dataObj.data ? dataLength = Object.keys(dataObj.data).length : Object.keys(dataObj).length
-    dataObj.code === "not_found" ? dataLength = 0 : null
-    return dataLength
-  }
+    let dataLength;
+    dataObj.data
+      ? (dataLength = Object.keys(dataObj.data).length)
+      : Object.keys(dataObj).length;
+    dataObj.code === 'not_found' ? (dataLength = 0) : null;
+    return dataLength;
+  };
 
   if (clientId !== undefined) {
     const clientRes = await fetch(
@@ -145,14 +150,14 @@ export async function getServerSideProps(context) {
         copilotGetReq,
       );
 
-      clientData = await clientCompanyRes.json()
+      clientData = await clientCompanyRes.json();
     }
   } else if (companyId !== undefined) {
     const companyRes = await fetch(
       `https://api.copilot-staging.com/v1/company/${companyId}`,
       copilotGetReq,
     );
-    clientData = await companyRes.json()
+    clientData = await companyRes.json();
 
     // call client endpoint if  no data returned for company
     if (checkDataLength(clientData) <= 0) {
@@ -161,9 +166,8 @@ export async function getServerSideProps(context) {
         copilotGetReq,
       );
 
-      clientData = await clientCompanyRes.json()
+      clientData = await clientCompanyRes.json();
     }
-
   } else {
     console.log('No ID Found');
   }

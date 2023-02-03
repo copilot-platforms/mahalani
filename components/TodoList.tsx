@@ -14,11 +14,17 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AppContext } from '../utils/appContext';
-import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
+import {
+  addRecord,
+  getAirtableClient,
+  updateRecord,
+} from '../utils/airtableUtils';
 import { TaskListToolbar } from './TaskListToolbar';
 import { FilterTodoListDialog } from './FilterTodoListDialog';
 import clsx from 'clsx';
 import { makeStyles } from '../utils/makeStyles';
+import { AddTaskButton } from './AddTaskButton';
+import { AddTaskCardForm } from './AddTaskCard';
 import { DetailedCardView } from './DetailedCardView';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
@@ -54,17 +60,24 @@ export const TodoListFilterContext = createContext<{
   setFilter: () => {},
 });
 
-const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
-  tasks,
-  title,
-}) => {
+const TodoList: React.FC<{
+  tasks: Array<Task>;
+  title: string;
+}> = ({ tasks, title }) => {
   const appSetupData = useContext(AppContext);
+
+  // Get the current client airtable record ref which lives in the tasks
+  const clientIdRef = tasks[0]?.clientIdRef;
+
   const { classes } = useStyles();
   // Get the airtable rest client instance
   const airtableClient = getAirtableClient(
     appSetupData.airtableApiKey,
     appSetupData.baseId,
   );
+
+  const tableClient = airtableClient(appSetupData.tableId);
+
   const [listViewMode, setListViewMode] = useState<TodoListViewMode>(
     TodoListViewMode.Board,
   );
@@ -75,7 +88,13 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
 
   const [tasksByStatus, setTasksByStatus] =
     useState<Record<TaskStatus, Array<Task>>>(initialTasksByStatus);
-
+  const [showAddTaskForm, setShowAddTaskForm] = useState<
+    Record<TaskStatus, boolean>
+  >({
+    [TaskStatus.Todo]: false,
+    [TaskStatus.InProgress]: false,
+    [TaskStatus.Done]: false,
+  });
   /**
    * This is a useEffect that filters the tasks by status.
    * Use reduce to convert the array of tasks into an object.
@@ -116,12 +135,12 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     const updatedTasks = {
       ...tasksByStatus,
       [existingStatus]: existingTasks.filter((task) => task.id !== id),
-      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }].sort((a, b) => a.rank - b.rank),
+      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }].sort(
+        (a, b) => a.rank - b.rank,
+      ),
     };
 
     setTasksByStatus(updatedTasks);
-
-    const tableClient = airtableClient(appSetupData.tableId);
 
     try {
       await updateRecord(tableClient, id, {
@@ -165,8 +184,8 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
   const handleTaskOpen = (taskId: string) => {
     // when a taskId is selected we should set the state for the currently select task and use that
     // to show the dialog
-    setSelectedTask(tasks.find(t => t.id === taskId) || null);
-  }
+    setSelectedTask(tasks.find((t) => t.id === taskId) || null);
+  };
 
   /**
    * Add event listeners for keyboard shortcuts.
@@ -178,6 +197,11 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         setOpenFilterDialog(false);
+        setShowAddTaskForm({
+          [TaskStatus.Todo]: false,
+          [TaskStatus.InProgress]: false,
+          [TaskStatus.Done]: false,
+        });
       }
 
       if (e.key === 'f' && e.metaKey) {
@@ -188,6 +212,30 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
       if (e.key === 'b' && e.metaKey) {
         e.preventDefault();
         handleToggleView();
+      }
+
+      if (e.key === 'u' && e.metaKey) {
+        e.preventDefault();
+        setShowAddTaskForm((currentState) => ({
+          ...currentState,
+          [TaskStatus.Todo]: true,
+        }));
+      }
+
+      if (e.key === 'i' && e.metaKey) {
+        e.preventDefault();
+        setShowAddTaskForm((currentState) => ({
+          ...currentState,
+          [TaskStatus.InProgress]: true,
+        }));
+      }
+
+      if (e.key === 'd' && e.metaKey) {
+        e.preventDefault();
+        setShowAddTaskForm((currentState) => ({
+          ...currentState,
+          [TaskStatus.Done]: true,
+        }));
       }
     });
 
@@ -201,8 +249,10 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
    */
   useEffect(() => {
     // filter task by title
-    const filteredTasks = tasks.filter((task) =>
-      task.title.toLowerCase().includes(searchFilter.toLowerCase()),
+    const filteredTasks = tasks.filter(
+      (task) =>
+        task.title &&
+        task.title.toLowerCase().includes(searchFilter.toLowerCase()),
     );
 
     setTasksByStatus(
@@ -228,6 +278,35 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
       </Container>
     );
   }
+
+  const handleAddTaskClick = (columnStatus: TaskStatus) => {
+    setShowAddTaskForm((currentState) => ({
+      ...currentState,
+      [columnStatus]: true,
+    }));
+  };
+
+  const handleAddTask = async (newTask: Task) => {
+    setTasksByStatus((currentState) => ({
+      ...currentState,
+      [newTask.status]: [...currentState[newTask.status], newTask],
+    }));
+
+    setShowAddTaskForm((currentState) => ({
+      ...currentState,
+      [newTask.status]: false,
+    }));
+
+    try {
+      await addRecord(tableClient, {
+        Name: newTask.title,
+        Status: newTask.status,
+        'Relevant Client ID': clientIdRef,
+      });
+    } catch (error) {
+      console.error('Error adding record', error);
+    }
+  };
 
   return (
     <div>
@@ -288,23 +367,38 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                         id,
                         rank,
                       }) => (
-                        <TaskCard
-                          viewMode={listViewMode}
-                          key={title}
-                          title={title}
-                          assignee={assignee}
-                          description={description}
-                          status={status}
-                          priority={priority}
-                          rank={rank}
-                          id={id}
-                          onTaskOpen={handleTaskOpen}
-                          onStatusChange={(newStatus: TaskStatus) =>
-                            handleStatusChanged(id, status, newStatus)
-                          }
-                        />
+                        <>
+                          <TaskCard
+                            viewMode={listViewMode}
+                            key={title}
+                            title={title}
+                            rank={rank}
+                            assignee={assignee}
+                            description={description}
+                            status={status}
+                            priority={priority}
+                            onTaskOpen={handleTaskOpen}
+                            id={id}
+                            onStatusChange={(newStatus: TaskStatus) =>
+                              handleStatusChanged(id, status, newStatus)
+                            }
+                          />
+                        </>
                       ),
                     )}
+                    <>
+                      {showAddTaskForm[status] && (
+                        <AddTaskCardForm
+                          onAddTask={handleAddTask}
+                          columnStatus={status as TaskStatus}
+                        />
+                      )}
+                      <AddTaskButton
+                        onClick={() => {
+                          handleAddTaskClick(status as TaskStatus);
+                        }}
+                      />
+                    </>
                   </TaskColumn>
                 </Grid>
               ))}
@@ -312,14 +406,11 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
           </div>
         </TodoListFilterContext.Provider>
       </DndProvider>
-      {selectedTask && (<Dialog
-        open
-        onClose={() => setSelectedTask(null)}
-      >
-        <DetailedCardView
-          task={selectedTask}
-        />
-      </Dialog>)}
+      {selectedTask && (
+        <Dialog open onClose={() => setSelectedTask(null)}>
+          <DetailedCardView task={selectedTask} />
+        </Dialog>
+      )}
     </div>
   );
 };
