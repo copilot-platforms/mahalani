@@ -73,7 +73,7 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
   }, []);
 
   // if assignee object has name property (company), name displayed is company, client if not
-  const assigneeName = clientData.name ? clientData.name : `${clientData.givenName} ${clientData.familyName}`;
+  const assigneeName = clientData?.name ? clientData.name : `${clientData?.givenName} ${clientData?.familyName}`;
 
   return (
     <AppContext.Provider value={appSetupData}>

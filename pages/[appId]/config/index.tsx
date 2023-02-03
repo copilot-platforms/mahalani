@@ -73,7 +73,12 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
           showTitle={false}
           description={
             appSetupData
-              ? `Your app is setup! You can embed it as a Custom App in Copilot using the following url: https://mahalani.vercel.app/${appId}`
+              ? 'Your app is setup! You can embed it as a Custom App in Copilot using the following url:'
+              : ''
+          }
+          link={
+            appSetupData
+              ? `https://mahalani.vercel.app/${appId}`
               : ''
           }
         >
