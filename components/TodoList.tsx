@@ -53,7 +53,7 @@ export const TodoListFilterContext = createContext<{
   setFilter: (filter: string) => void;
 }>({
   filter: '',
-  setFilter: () => {},
+  setFilter: () => { },
 });
 
 const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: () => void }> = ({
@@ -236,7 +236,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: ()
     });
 
     return () => {
-      window.removeEventListener('keydown', () => {});
+      window.removeEventListener('keydown', () => { });
     };
   }, []);
 
@@ -303,7 +303,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: ()
         body: JSON.stringify({
           Name: newTask.title,
           Status: newTask.status,
-          'Relevant Client ID': clientIdRef,
+          'Assignee - Reference Record': clientIdRef,
         }),
       });
     } catch (error) {

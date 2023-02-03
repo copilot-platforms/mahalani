@@ -27,7 +27,7 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
     attachments: record.fields.attachments,
     description: record.fields.description,
     learnMoreLink: record.fields.learnMoreLink,
-    clientIdRef: record.fields['Relevant Client ID'],
+    clientIdRef: record.fields['Assignee - Reference Record'],
   }));
   return formattedData;
 };
