@@ -7,8 +7,8 @@ import {
   IconButton,
   Typography,
   ButtonGroup,
-  Chip,
   CardContent,
+  Tooltip,
 } from '@mui/material';
 import { Task, TaskStatus, TodoListViewMode, Priority } from './types';
 import { useDrag } from 'react-dnd';
@@ -40,16 +40,6 @@ const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
   menuPaper: {
     border: '1px solid #E5E5E5',
   },
-  priorityChip: {
-    '&.MuiChip-root': {
-      height: '20px',
-      padding: '0',
-      fontSize: '12px',
-      '&:hover': {
-        cursor: 'default',
-      },
-    },
-  },
 }));
 
 interface TaskCardProps extends Task {
@@ -57,12 +47,6 @@ interface TaskCardProps extends Task {
   viewMode: TodoListViewMode;
   onTaskOpen: (id: string) => void;
 }
-
-const PriorityToColorMap = {
-  High: 'error',
-  Medium: 'warning',
-  Low: 'success',
-};
 
 const PriorityToComponentMap = {
   High: SignalCellularAltIcon,
@@ -125,7 +109,7 @@ const TaskCard = ({
 
   const openTaskCard = () => {
     onTaskOpen(id);
-  }
+  };
 
   return (
     <Card
@@ -152,7 +136,7 @@ const TaskCard = ({
             {appConfig.controls?.allowUpdatingStatus && (
               <ButtonGroup
                 sx={{
-                  margin: 'auto 0'
+                  margin: 'auto 0',
                 }}
               >
                 <IconButton
@@ -176,31 +160,39 @@ const TaskCard = ({
                 }}
               />
             )}
-            <div>
-              <Typography fontSize={16} component="div">{title}</Typography>
-              {priority && (
-                <Chip
-                  component="button"
-                  label={taskPriority}
-                  onClick={openTaskCardMenu}
-                  color={PriorityToColorMap[taskPriority]}
-                  className={classes.priorityChip}
-                />
-              )}
-            </div>
+
+            <Typography fontSize={16} component="div">
+              {title}
+            </Typography>
           </Box>
-          <IconButton
-            onClick={(event) => {
-              event.stopPropagation();
-              onTaskOpen(id);
-            }}
-          >
-            <OpenInFull
-              style={{
-                fontSize: '12px',
-              }}
-            />
-          </IconButton>
+          <ButtonGroup>
+            {priority && (
+              <Tooltip title={priority}>
+                <IconButton onClick={openTaskCardMenu}>
+                  <PriorityIconComponent
+                    style={{
+                      fontSize: '12px',
+                    }}
+                  />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            <Tooltip title="Open Task">
+              <IconButton
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onTaskOpen(id);
+                }}
+              >
+                <OpenInFull
+                  style={{
+                    fontSize: '12px',
+                  }}
+                />
+              </IconButton>
+            </Tooltip>
+          </ButtonGroup>
         </div>
       </CardContent>
 
