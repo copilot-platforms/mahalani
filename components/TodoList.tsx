@@ -172,8 +172,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
    * Add event listeners for keyboard shortcuts.
    * Escape key closes the filter dialog.
    * Command + F opens the filter dialog.
-   * Command + B toggles to board view.
-   * Command + L toggles to list view.
+   * Command + B toggles between board view & list view.
    */
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
@@ -187,7 +186,8 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
       }
 
       if (e.key === 'b' && e.metaKey) {
-        setListViewMode(isListViewMode ? TodoListViewMode.Board : TodoListViewMode.List);
+        e.preventDefault();
+        handleToggleView();
       }
     });
 
