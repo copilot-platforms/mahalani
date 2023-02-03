@@ -88,7 +88,13 @@ const TodoList: React.FC<{
 
   const [tasksByStatus, setTasksByStatus] =
     useState<Record<TaskStatus, Array<Task>>>(initialTasksByStatus);
-
+  const [showAddTaskForm, setShowAddTaskForm] = useState<
+    Record<TaskStatus, boolean>
+  >({
+    [TaskStatus.Todo]: false,
+    [TaskStatus.InProgress]: false,
+    [TaskStatus.Done]: false,
+  });
   /**
    * This is a useEffect that filters the tasks by status.
    * Use reduce to convert the array of tasks into an object.
@@ -191,7 +197,7 @@ const TodoList: React.FC<{
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         setOpenFilterDialog(false);
-        setShowAddTaskOnColumn({
+        setShowAddTaskForm({
           [TaskStatus.Todo]: false,
           [TaskStatus.InProgress]: false,
           [TaskStatus.Done]: false,
@@ -210,7 +216,7 @@ const TodoList: React.FC<{
 
       if (e.key === 'u' && e.metaKey) {
         e.preventDefault();
-        setShowAddTaskOnColumn((currentState) => ({
+        setShowAddTaskForm((currentState) => ({
           ...currentState,
           [TaskStatus.Todo]: true,
         }));
@@ -218,7 +224,7 @@ const TodoList: React.FC<{
 
       if (e.key === 'i' && e.metaKey) {
         e.preventDefault();
-        setShowAddTaskOnColumn((currentState) => ({
+        setShowAddTaskForm((currentState) => ({
           ...currentState,
           [TaskStatus.InProgress]: true,
         }));
@@ -226,7 +232,7 @@ const TodoList: React.FC<{
 
       if (e.key === 'd' && e.metaKey) {
         e.preventDefault();
-        setShowAddTaskOnColumn((currentState) => ({
+        setShowAddTaskForm((currentState) => ({
           ...currentState,
           [TaskStatus.Done]: true,
         }));
@@ -273,16 +279,8 @@ const TodoList: React.FC<{
     );
   }
 
-  const [showAddTaskOnColumn, setShowAddTaskOnColumn] = useState<
-    Record<TaskStatus, boolean>
-  >({
-    [TaskStatus.Todo]: false,
-    [TaskStatus.InProgress]: false,
-    [TaskStatus.Done]: false,
-  });
-
   const handleAddTaskClick = (columnStatus: TaskStatus) => {
-    setShowAddTaskOnColumn((currentState) => ({
+    setShowAddTaskForm((currentState) => ({
       ...currentState,
       [columnStatus]: true,
     }));
@@ -294,7 +292,7 @@ const TodoList: React.FC<{
       [newTask.status]: [...currentState[newTask.status], newTask],
     }));
 
-    setShowAddTaskOnColumn((currentState) => ({
+    setShowAddTaskForm((currentState) => ({
       ...currentState,
       [newTask.status]: false,
     }));
@@ -389,7 +387,7 @@ const TodoList: React.FC<{
                       ),
                     )}
                     <>
-                      {showAddTaskOnColumn[status] && (
+                      {showAddTaskForm[status] && (
                         <AddTaskCardForm
                           onAddTask={handleAddTask}
                           columnStatus={status as TaskStatus}
