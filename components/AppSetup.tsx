@@ -259,6 +259,25 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
               {activeStep === SetupSteps.ProvideApiKeys && (
                 <>
                   <FormControl>
+                    <FormLabel id="demo-row-radio-buttons-group-label" color='primary' >Default channel type:</FormLabel>
+                    <RadioGroup
+                      row
+                      value={defaultChannelType}
+                      onChange={(e) => handleDefaultChannel(e)}
+                    >
+                      <FormControlLabel
+                        value="clients"
+                        control={<Radio color='primary' size='small' />}
+                        label="Clients"
+                      />
+                      <FormControlLabel
+                        value="companies"
+                        control={<Radio color='primary' size='small' />}
+                        label="Companies" />
+
+                    </RadioGroup>
+                  </FormControl>
+                  <FormControl>
                     <TextField
                       fullWidth
                       type="text"
@@ -276,25 +295,6 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
                       onChange={(e) => setAirtableApiKey(e.target.value)}
                       size="small"
                     />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel id="demo-row-radio-buttons-group-label" color='primary' >Default channel type:</FormLabel>
-                    <RadioGroup 
-                    row
-                    value={defaultChannelType}
-                    onChange={(e) => handleDefaultChannel(e)}
-                    >
-                      <FormControlLabel 
-                      value="clients" 
-                      control={<Radio color='primary' size='small' />} 
-                      label="Clients" 
-                      />
-                      <FormControlLabel 
-                      value="companies" 
-                      control={<Radio color='primary' size='small' />} 
-                      label="Companies" />
-                      
-                    </RadioGroup>
                   </FormControl>
                 </>
               )}
