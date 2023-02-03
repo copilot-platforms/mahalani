@@ -12,15 +12,15 @@ import {
 } from '@mui/material';
 import { Task, TaskStatus, TodoListViewMode, Priority } from './types';
 import { useDrag } from 'react-dnd';
-import { makeStyles } from '@mui/styles';
 import {
   SignalCellularAlt1Bar,
   SignalCellularAlt2Bar,
 } from '@mui/icons-material';
 import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 import { TodoIcon, InProgressIcon, DoneIcon } from '../icons';
+import { makeStyles } from '../utils/makeStyles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
   card: {
     width: '100%',
     boxShadow: '0px 0px 24px rgba(0, 0, 0, 0.07)',
@@ -47,7 +47,8 @@ const useStyles = makeStyles({
       },
     },
   },
-});
+}));
+
 interface TaskCardProps extends Task {
   onStatusChange: (status: TaskStatus) => void;
   viewMode: TodoListViewMode;
@@ -84,7 +85,7 @@ const TaskCard = ({
   onStatusChange,
   viewMode,
 }: TaskCardProps) => {
-  const classes = useStyles({ viewMode });
+  const { classes } = useStyles({ viewMode });
 
   const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
   const handleStatusChange = async (event: SelectChangeEvent) => {
@@ -154,7 +155,7 @@ const TaskCard = ({
 
             <Typography fontSize={16}>{title}</Typography>
           </div>
-          {priority &&
+          {priority && (
             <Chip
               component="button"
               label={taskPriority}
@@ -162,7 +163,7 @@ const TaskCard = ({
               color={PriorityToColorMap[taskPriority]}
               className={classes.priorityChip}
             />
-          }
+          )}
         </div>
       </CardContent>
 

@@ -8,10 +8,13 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.261.0",
-    "@emotion/react": "^11.10.5",
-    "@emotion/styled": "^11.10.5",
-    "@mui/icons-material": "^5.11.0",
-    "@mui/material": "^5.11.4",
+    "@emotion/cache": "latest",
+    "@emotion/react": "latest",
+    "@emotion/server": "latest",
+    "@emotion/styled": "latest",
+    "@material-ui/styles": "^4.11.5",
+    "@mui/icons-material": "latest",
+    "@mui/material": "latest",
     "@mui/styles": "^5.11.2",
     "@mui/x-data-grid": "^5.17.21",
     "@next/font": "^13.1.6",
@@ -25,7 +28,8 @@
     "react-copy-to-clipboard": "^5.1.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tss-react": "^4.6.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
