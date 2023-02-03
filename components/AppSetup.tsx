@@ -135,7 +135,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
         (field) => field.name.toLowerCase() == 'name',
       );
       const clientIdFields = selectedFields.filter(
-        (field) => field.name.toLowerCase() == 'client id',
+        (field) => field.name.toLowerCase() == 'assignee id',
       );
       const statusFields = selectedFields.filter(
         (field) => field.name.toLowerCase() == 'status',
@@ -152,7 +152,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
       } else if (nameFields.length === 0) {
         errorMessage = "Selected table has no field called 'Name'";
       } else if (clientIdFields.length === 0) {
-        errorMessage = "Selected table has no field called 'Client ID'";
+        errorMessage = "Selected table has no field called 'Assignee ID'";
       } else if (statusFields.length === 0) {
         errorMessage = "Selected table has no field called 'Status'";
       } else if (
