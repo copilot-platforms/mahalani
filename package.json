@@ -28,7 +28,8 @@
     "react-copy-to-clipboard": "^5.1.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tss-react": "^4.6.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { TodoListViewMode } from './types';
-import { makeStyles } from '@mui/styles';
 import { Divider } from '@mui/material';
 import clsx from 'clsx';
-const useStyles = makeStyles(() => ({
+import { makeStyles } from '../utils/makeStyles';
+const useStyles = makeStyles()(() => ({
   root: {
     height: '100%',
     padding: '1rem',
@@ -32,7 +32,7 @@ type Props = {
  * @param title The title of the column e.g "Todo", "In progress", "Done"
  */
 const TaskColumn: React.FC<Props> = ({ children, title, onDrop, viewMode }) => {
-  const classes = useStyles();
+  const { classes } = useStyles();
   const [{ isOver, canDrop, droppingTaskItem }, dropAreaRef] = useDrop({
     accept: 'card',
     drop: onDrop,

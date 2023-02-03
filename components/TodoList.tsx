@@ -1,4 +1,11 @@
-import { Container, Box, Grid, IconButton, Theme, Typography } from '@mui/material';
+import {
+  Container,
+  Box,
+  Grid,
+  IconButton,
+  Theme,
+  Typography,
+} from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus, TodoListViewMode } from './types';
@@ -7,10 +14,10 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AppContext } from '../utils/appContext';
 import { getAirtableClient, updateRecord } from '../utils/airtableUtils';
-import { makeStyles } from '@mui/styles';
 import { TaskListToolbar } from './TaskListToolbar';
 import { FilterTodoListDialog } from './FilterTodoListDialog';
 import clsx from 'clsx';
+import { makeStyles } from '../utils/makeStyles';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -20,7 +27,7 @@ const initialTasksByStatus: Record<TaskStatus, Array<Task>> = {
   [TaskStatus.Done]: [],
 };
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -36,12 +43,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
 }));
+
 export const TodoListFilterContext = createContext<{
   filter: string;
   setFilter: (filter: string) => void;
 }>({
   filter: '',
-  setFilter: () => { },
+  setFilter: () => {},
 });
 
 const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
@@ -49,7 +57,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
   title,
 }) => {
   const appSetupData = useContext(AppContext);
-  const classes = useStyles();
+  const { classes } = useStyles();
   // Get the airtable rest client instance
   const airtableClient = getAirtableClient(
     appSetupData.airtableApiKey,
@@ -177,7 +185,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     });
 
     return () => {
-      window.removeEventListener('keydown', () => { });
+      window.removeEventListener('keydown', () => {});
     };
   }, []);
 
@@ -203,8 +211,12 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     return (
       <Container>
         <Box mt={8}>
-          <Typography variant="h4" align="center">You have no tasks assigned!</Typography>
-          <Typography variant="subtitle1" align="center">Please come back later to check if new tasks have been assigned.</Typography>
+          <Typography variant="h4" align="center">
+            You have no tasks assigned!
+          </Typography>
+          <Typography variant="subtitle1" align="center">
+            Please come back later to check if new tasks have been assigned.
+          </Typography>
         </Box>
       </Container>
     );
@@ -260,7 +272,14 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                       </Typography>
                     )}
                     {tasks.map(
-                      ({ title, assignee, description, status, priority, id }) => (
+                      ({
+                        title,
+                        assignee,
+                        description,
+                        status,
+                        priority,
+                        id,
+                      }) => (
                         <TaskCard
                           viewMode={listViewMode}
                           key={title}
