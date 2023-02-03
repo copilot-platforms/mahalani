@@ -7,6 +7,10 @@ import {
   MenuItem,
   Skeleton,
   TextField,
+  RadioGroup,
+  Radio,
+  FormLabel,
+  FormControlLabel
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import {
@@ -59,7 +63,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
   });
   const [airtableApiKey, setAirtableApiKey] = useState('');
   const [copilotApiKey, setCopilotApiKey] = useState('');
-  const [defaultChannelType, setDefaultChannelType] = useState<string>('clients')
+  const [defaultChannelType, setDefaultChannelType] = useState<string>('')
   const [airtableBases, setAirtableBases] = useState<ApiBaseItem[]>([]);
   const [tables, setTables] = useState<ApiTableItem[]>([]);
   const [selectedBaseId, setSelectedBaseId] = useState<string>('');
@@ -209,6 +213,11 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
     return '';
   };
 
+  const handleDefaultChannel = (e) => {
+    setDefaultChannelType(e.target.value)
+  }
+  console.log(defaultChannelType)
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('submitted form', airtableApiKey);
@@ -227,6 +236,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
         baseId: selectedBaseId,
         tableId: selectedTableId,
         viewId: selectedViewId,
+        defaultChannelType: defaultChannelType,
       });
       setActiveStep(SetupSteps.GetStarted);
     } else {
@@ -266,6 +276,25 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
                       onChange={(e) => setAirtableApiKey(e.target.value)}
                       size="small"
                     />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel id="demo-row-radio-buttons-group-label" color='primary' >Default channel type:</FormLabel>
+                    <RadioGroup 
+                    row
+                    value={defaultChannelType}
+                    onChange={(e) => handleDefaultChannel(e)}
+                    >
+                      <FormControlLabel 
+                      value="clients" 
+                      control={<Radio color='primary' size='small' />} 
+                      label="Clients" 
+                      />
+                      <FormControlLabel 
+                      value="companies" 
+                      control={<Radio color='primary' size='small' />} 
+                      label="Companies" />
+                      
+                    </RadioGroup>
                   </FormControl>
                 </>
               )}

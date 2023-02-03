@@ -53,7 +53,8 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
 
   /* Changes the param name in the URLs displayed after app setup is complete based on the default channel type
   */
-  const isCompany = false // <---- need to set this based on user input, hardcoded for now
+  const isCompany = appSetupData ? appSetupData.defaultChannelType : undefined // set company or client based on user input
+  console.log(`app setup data: ${JSON.stringify(appSetupData)}`)
 
   const setRowsForDefaultChannelType = () => {
     let paramName = 'clientId'

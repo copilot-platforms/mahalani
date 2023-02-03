@@ -6,6 +6,7 @@ export type AppContextType = {
     baseId: string;
     tableId: string;
     viewId: string;
+    defaultChannelType: string
 };
 
 export const AppContext = React.createContext<AppContextType | null>(null);
