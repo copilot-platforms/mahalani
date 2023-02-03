@@ -187,11 +187,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
       }
 
       if (e.key === 'b' && e.metaKey) {
-        setListViewMode(TodoListViewMode.Board);
-      }
-
-      if (e.key === 'l' && e.metaKey) {
-        setListViewMode(TodoListViewMode.List);
+        setListViewMode(isListViewMode ? TodoListViewMode.Board : TodoListViewMode.List);
       }
     });
 
