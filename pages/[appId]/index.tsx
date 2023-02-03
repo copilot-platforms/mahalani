@@ -24,9 +24,9 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
     assignee: clientData,
     priority: record.fields.Priority || '',
     rank: rank,
-    attachments: record.fields.attachments,
-    description: record.fields.description,
-    learnMoreLink: record.fields.learnMoreLink,
+    attachments: record.fields.['Attachments'],
+    description: record.fields['Description'],
+    learnMoreLink: record.fields['Learn More Link'],
     clientIdRef: record.fields['Assignee - Reference Record'],
   }));
   return formattedData;
