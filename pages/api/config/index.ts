@@ -3,8 +3,44 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getServerSession } from "next-auth/next"
 import { s3Client, bucketParams, fetchConfig } from './apiConfigUtils';
 import { authOptions } from "../auth/[...nextauth]"
+import { AppContextType } from '../../../utils/appContext';
 
+export const loadAssignees = async (appConfig: AppContextType) => {
+  let assigneeData = null;
+  try {
+    const copilotGetReq = {
+      headers: {
+        'X-API-KEY': appConfig.copilotApiKey,
+        'Content-Type': 'application/json',
+      },
+    };
 
+    const clientRes = await fetch(
+      `https://api.copilot-staging.com/v1/client`,
+      copilotGetReq,
+    );
+
+    const companyRes = await fetch(
+      `https://api.copilot-staging.com/v1/company`,
+      copilotGetReq
+    )
+
+    // get all companies from a portal
+    const allCompanies = (await companyRes.json()).data;
+
+    // create list of valid companies
+    const companyData = []
+    allCompanies.forEach((company) => {
+      company.name.length > 0 ? companyData.push(company) : null
+    })
+
+    // concatenate assignees and companies
+    assigneeData = (await clientRes.json()).data.concat(companyData);
+  } catch (ex) {
+    console.error('error fetching user apps', ex);
+  }
+  return assigneeData;
+}
 
 /**
  * Get the config data for a given app id
@@ -23,20 +59,8 @@ const handleGetConfig = async (req: NextApiRequest, res: NextApiResponse) => {
   // clients backend for data
   try {
     const configData = await fetchConfig(appId as string);
-    const copilotGetReq = {
-      headers: {
-        'X-API-KEY': configData.copilotApiKey,
-        'Content-Type': 'application/json',
-      },
-    };
-
-    const clientRes = await fetch(
-      `https://api.copilot-staging.com/v1/client`,
-      copilotGetReq,
-    );
-
-    const clientData = (await clientRes.json()).data;
-    res.status(200).json(clientData)
+    const assigneeData = await loadAssignees(configData);
+    res.status(200).json(assigneeData)
   } catch (ex) {
     console.log(ex);
   }
