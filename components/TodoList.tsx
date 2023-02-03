@@ -245,8 +245,10 @@ const TodoList: React.FC<{
    */
   useEffect(() => {
     // filter task by title
-    const filteredTasks = tasks.filter((task) =>
-      task.title.toLowerCase().includes(searchFilter.toLowerCase()),
+    const filteredTasks = tasks.filter(
+      (task) =>
+        task.title &&
+        task.title.toLowerCase().includes(searchFilter.toLowerCase()),
     );
 
     setTasksByStatus(

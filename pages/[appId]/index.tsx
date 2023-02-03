@@ -58,7 +58,8 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
   const refreshAppData = async () => {
     const tasks = await loadAppData(appSetupData, clientData);
-    setTaskList(tasks);
+
+    setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
   };
 
   useEffect(() => {

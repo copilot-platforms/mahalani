@@ -1,4 +1,5 @@
 import { Card, css, TextField } from '@mui/material';
+import { useRef } from 'react';
 import { Task, TaskStatus } from './types';
 
 export const AddTaskCardForm = ({
@@ -8,6 +9,7 @@ export const AddTaskCardForm = ({
   onAddTask: (task: Task) => void;
   columnStatus: TaskStatus;
 }) => {
+  const errorText = useRef('');
   return (
     <Card
       elevation={0}
@@ -27,8 +29,28 @@ export const AddTaskCardForm = ({
         size="small"
         fullWidth
         autoFocus
+        onBlur={() => {
+          errorText.current = '';
+        }}
+        helperText={
+          errorText.current ? (
+            <span
+              css={css`
+                color: red;
+              `}
+            >
+              {errorText.current}
+            </span>
+          ) : (
+            'Press Enter to add task'
+          )
+        }
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
+            if (!(e.target as HTMLInputElement).value) {
+              errorText.current = 'Task title is required';
+              return;
+            }
             onAddTask({
               title: (e.target as HTMLInputElement).value,
               status: columnStatus,
