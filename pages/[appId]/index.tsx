@@ -33,12 +33,12 @@ const loadAppData = async (
   console.info('airtableRecords', airtableRecords);
 
   // format the data coming from airtable to fit the task data struct
-  const tasksList: Array<Task> = airtableRecords.map((record) => ({
+  const tasksList: Array<Task> = airtableRecords.map((record, rank) => ({
     id: record.id,
     title: record.fields.Name,
     status: record.fields.Status,
     assignee: clientData,
-    priority: record.fields.Priority,
+    priority: record.fields.Priority || '',
   }));
   return tasksList;
 };
