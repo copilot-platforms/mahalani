@@ -39,6 +39,9 @@ const loadAppData = async (
     status: record.fields.Status,
     assignee: clientData,
     priority: record.fields.Priority || '',
+    attachments: record.fields.attachments,
+    description: record.fields.description,
+    learnMoreLink: record.fields.learnMoreLink,
   }));
   return tasksList;
 };
@@ -79,7 +82,6 @@ const AppPage = ({ clientData, tasks, appSetupData }: AppPagePros) => {
     <AppContext.Provider value={appSetupData}>
       <Layout title="Home | Next.js + TypeScript Example">
         <TodoList title={`${assigneeName}'s tasks`} tasks={taskLists} />
-
       </Layout>
     </AppContext.Provider>
   );
@@ -177,7 +179,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       clientData,
-      tasks,
+      tasks: JSON.parse(JSON.stringify(tasks)),
       appSetupData,
     },
   };

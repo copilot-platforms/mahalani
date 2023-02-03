@@ -9,6 +9,11 @@ export enum Priority {
   Low = 'Low',
 }
 
+type AirTableAttachment = {
+  type: string;
+  url: string;
+}
+
 export type Task = {
   id?: string;
   title: string;
@@ -16,6 +21,8 @@ export type Task = {
   assignee?: AssigneeDataType;
   priority?: Priority;
   description?: string;
+  attachments?: AirTableAttachment[] | null;
+  learnMoreLink?: string | null;
 };
 
 export type AssigneeDataType = {
