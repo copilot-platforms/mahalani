@@ -116,7 +116,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
     const updatedTasks = {
       ...tasksByStatus,
       [existingStatus]: existingTasks.filter((task) => task.id !== id),
-      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }],
+      [newStatus]: [...newTasks, { ...taskToMove, status: newStatus }].sort((a, b) => a.rank - b.rank),
     };
 
     setTasksByStatus(updatedTasks);
@@ -286,6 +286,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                         status,
                         priority,
                         id,
+                        rank,
                       }) => (
                         <TaskCard
                           viewMode={listViewMode}
@@ -295,6 +296,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string }> = ({
                           description={description}
                           status={status}
                           priority={priority}
+                          rank={rank}
                           id={id}
                           onTaskOpen={handleTaskOpen}
                           onStatusChange={(newStatus: TaskStatus) =>
