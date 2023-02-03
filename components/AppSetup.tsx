@@ -59,6 +59,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
   });
   const [airtableApiKey, setAirtableApiKey] = useState('');
   const [copilotApiKey, setCopilotApiKey] = useState('');
+  const [defaultChannelType, setDefaultChannelType] = useState<string>('clients')
   const [airtableBases, setAirtableBases] = useState<ApiBaseItem[]>([]);
   const [tables, setTables] = useState<ApiTableItem[]>([]);
   const [selectedBaseId, setSelectedBaseId] = useState<string>('');
