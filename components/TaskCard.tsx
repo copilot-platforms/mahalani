@@ -52,6 +52,7 @@ const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
 interface TaskCardProps extends Task {
   onStatusChange: (status: TaskStatus) => void;
   viewMode: TodoListViewMode;
+  onTaskOpen: (id: string) => void;
 }
 
 const PriorityToColorMap = {
@@ -84,6 +85,7 @@ const TaskCard = ({
   id,
   onStatusChange,
   viewMode,
+  onTaskOpen,
 }: TaskCardProps) => {
   const { classes } = useStyles({ viewMode });
 
@@ -117,6 +119,10 @@ const TaskCard = ({
     return;
   };
 
+  const openTaskCard = () => {
+    onTaskOpen(id);
+  }
+
   return (
     <Card
       variant="outlined"
@@ -128,6 +134,7 @@ const TaskCard = ({
       style={{
         opacity: opacity,
       }}
+      onClick={openTaskCard}
     >
       <CardContent>
         <div
