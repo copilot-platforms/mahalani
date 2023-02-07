@@ -259,8 +259,8 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: ()
     );
   }, [searchFilter]);
 
-  // when there is no task, show empty state
-  if (tasks.length === 0) {
+  // when there is no task & client can't add tasks, show empty state
+  if (tasks.length === 0 && !appConfig.controls?.allowAddingItems) {
     return (
       <Container>
         <Box mt={8}>
