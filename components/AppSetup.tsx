@@ -135,7 +135,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
         (field) => field.name.toLowerCase() == 'name',
       );
       const clientIdFields = selectedFields.filter(
-        (field) => field.name.toLowerCase() == 'client id',
+        (field) => field.name.toLowerCase() == 'assignee id',
       );
       const statusFields = selectedFields.filter(
         (field) => field.name.toLowerCase() == 'status',
@@ -152,7 +152,7 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
       } else if (nameFields.length === 0) {
         errorMessage = "Selected table has no field called 'Name'";
       } else if (clientIdFields.length === 0) {
-        errorMessage = "Selected table has no field called 'Client ID'";
+        errorMessage = "Selected table has no field called 'Assignee ID'";
       } else if (statusFields.length === 0) {
         errorMessage = "Selected table has no field called 'Status'";
       } else if (
@@ -259,6 +259,25 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
               {activeStep === SetupSteps.ProvideApiKeys && (
                 <>
                   <FormControl>
+                    <FormLabel id="demo-row-radio-buttons-group-label" color='primary' >Default channel type:</FormLabel>
+                    <RadioGroup
+                      row
+                      value={defaultChannelType}
+                      onChange={(e) => handleDefaultChannel(e)}
+                    >
+                      <FormControlLabel
+                        value="clients"
+                        control={<Radio color='primary' size='small' />}
+                        label="Clients"
+                      />
+                      <FormControlLabel
+                        value="companies"
+                        control={<Radio color='primary' size='small' />}
+                        label="Companies" />
+
+                    </RadioGroup>
+                  </FormControl>
+                  <FormControl>
                     <TextField
                       fullWidth
                       type="text"
@@ -276,25 +295,6 @@ const AppSetup = ({ onSetupComplete, appSetupData, clientsRows }) => {
                       onChange={(e) => setAirtableApiKey(e.target.value)}
                       size="small"
                     />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel id="demo-row-radio-buttons-group-label" color='primary' >Default channel type:</FormLabel>
-                    <RadioGroup 
-                    row
-                    value={defaultChannelType}
-                    onChange={(e) => handleDefaultChannel(e)}
-                    >
-                      <FormControlLabel 
-                      value="clients" 
-                      control={<Radio color='primary' size='small' />} 
-                      label="Clients" 
-                      />
-                      <FormControlLabel 
-                      value="companies" 
-                      control={<Radio color='primary' size='small' />} 
-                      label="Companies" />
-                      
-                    </RadioGroup>
                   </FormControl>
                 </>
               )}

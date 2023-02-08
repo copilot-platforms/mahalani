@@ -98,6 +98,7 @@ const TaskCard = ({
     () => ({
       type: 'card',
       item: { taskId: id, status },
+      canDrag: appConfig.controls?.allowUpdatingStatus,
       collect: (monitor) => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),

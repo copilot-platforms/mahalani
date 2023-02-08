@@ -28,10 +28,10 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
     assignee: clientData,
     priority: record.fields.Priority || '',
     rank: rank,
-    attachments: record.fields.attachments,
-    description: record.fields.description,
-    learnMoreLink: record.fields.learnMoreLink,
-    clientIdRef: record.fields['Relevant Client ID'],
+    attachments: record.fields['Attachments'],
+    description: record.fields['Description'],
+    learnMoreLink: record.fields['Learn More Link'],
+    clientIdRef: record.fields['Assignee - Reference Record'],
   }));
   return formattedData;
 };
@@ -150,7 +150,7 @@ export async function getServerSideProps(context) {
 
   if (clientId !== undefined) {
     const clientRes = await fetch(
-      `https://api.copilot-staging.com/v1/client/${clientId}`,
+      `https://api-beta.copilot.com/v1/client/${clientId}`,
       copilotGetReq,
     );
 
@@ -159,7 +159,7 @@ export async function getServerSideProps(context) {
     // call company endpoint if  no data returned for client
     if (checkDataLength(clientData) <= 0) {
       const clientCompanyRes = await fetch(
-        `https://api.copilot-staging.com/v1/company/${clientId}`,
+        `https://api-beta.copilot.com/v1/company/${clientId}`,
         copilotGetReq,
       );
 
@@ -167,7 +167,7 @@ export async function getServerSideProps(context) {
     }
   } else if (companyId !== undefined) {
     const companyRes = await fetch(
-      `https://api.copilot-staging.com/v1/company/${companyId}`,
+      `https://api-beta.copilot.com/v1/company/${companyId}`,
       copilotGetReq,
     );
     clientData = await companyRes.json();
@@ -175,7 +175,7 @@ export async function getServerSideProps(context) {
     // call client endpoint if  no data returned for company
     if (checkDataLength(clientData) <= 0) {
       const clientCompanyRes = await fetch(
-        `https://api.copilot-staging.com/v1/client/${companyId}`,
+        `https://api-beta.copilot.com/v1/client/${companyId}`,
         copilotGetReq,
       );
 
@@ -195,7 +195,7 @@ export async function getServerSideProps(context) {
   }
 
   const appConfig = {
-    controls: appSetupData.controls,
+    controls: appSetupData.controls || '',
     defaultChannelType: appSetupData.defaultChannelType || null,
   };
 

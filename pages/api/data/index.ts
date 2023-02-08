@@ -17,7 +17,7 @@ export const loadAppData = async (
   const airtableRecords = await getAllRecords(
     tableClient,
     appData.viewId,
-    `{Client ID} = "${clientId}"`,
+    `{Assignee ID} = "${clientId}"`,
   );
 
   console.info('num airtableRecords', airtableRecords.length);
