@@ -7,8 +7,7 @@ import {
   IconButton,
   Typography,
   ButtonGroup,
-  Chip,
-  CardContent,
+  Tooltip,
 } from '@mui/material';
 import { Task, TaskStatus, TodoListViewMode, Priority } from './types';
 import { useDrag } from 'react-dnd';
@@ -20,7 +19,7 @@ import OpenInFull from '@mui/icons-material/OpenInFull';
 import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 import { TodoIcon, InProgressIcon, DoneIcon } from '../icons';
 import { makeStyles } from '../utils/makeStyles';
-import { Box } from '@mui/system';
+import { Box, css } from '@mui/system';
 import { AppContext } from '../utils/appContext';
 
 const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
@@ -40,15 +39,12 @@ const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
   menuPaper: {
     border: '1px solid #E5E5E5',
   },
-  priorityChip: {
-    '&.MuiChip-root': {
-      height: '20px',
-      padding: '0',
-      fontSize: '12px',
-      '&:hover': {
-        cursor: 'default',
-      },
-    },
+  cardContent: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '8px',
+    padding: '16px',
   },
 }));
 
@@ -57,12 +53,6 @@ interface TaskCardProps extends Task {
   viewMode: TodoListViewMode;
   onTaskOpen: (id: string) => void;
 }
-
-const PriorityToColorMap = {
-  High: 'error',
-  Medium: 'warning',
-  Low: 'success',
-};
 
 const PriorityToComponentMap = {
   High: SignalCellularAltIcon,
@@ -92,7 +82,7 @@ const TaskCard = ({
 }: TaskCardProps) => {
   const { classes } = useStyles({ viewMode });
   const appConfig = useContext(AppContext);
-  const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
+  // const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
   };
@@ -102,7 +92,7 @@ const TaskCard = ({
   const [taskCardMenu, setCardMenuAnchorEl] =
     React.useState<HTMLDivElement | null>(null);
 
-  const PriorityIconComponent = PriorityToComponentMap[taskPriority];
+  const PriorityIconComponent = PriorityToComponentMap[priority];
 
   const [{ opacity }, dragRef] = useDrag(
     () => ({
@@ -126,7 +116,7 @@ const TaskCard = ({
 
   const openTaskCard = () => {
     onTaskOpen(id);
-  }
+  };
 
   return (
     <Card
@@ -140,70 +130,69 @@ const TaskCard = ({
         opacity: opacity,
       }}
     >
-      <CardContent>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-          }}
-        >
-          <Box display="flex" alignItems="center" gap={1}>
-            {appConfig.controls?.allowUpdatingStatus && (
-              <ButtonGroup
-                sx={{
-                  margin: 'auto 0'
+      <div className={classes.cardContent}>
+        <Box display="flex" alignItems="center" gap={1}>
+          {appConfig.controls?.allowUpdatingStatus && (
+            <ButtonGroup
+              sx={{
+                margin: 'auto 0',
+              }}
+            >
+              <IconButton
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setMenuAnchorEl(event.currentTarget);
                 }}
               >
-                <IconButton
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setMenuAnchorEl(event.currentTarget);
+                <StatusIcon
+                  style={{
+                    fontSize: '12px',
                   }}
-                >
-                  <StatusIcon
-                    style={{
-                      fontSize: '12px',
-                    }}
-                  />
-                </IconButton>
-              </ButtonGroup>
-            )}
-            {!appConfig.controls?.allowUpdatingStatus && (
-              <StatusIcon
-                style={{
-                  fontSize: '12px',
-                }}
-              />
-            )}
-            <div>
-              <Typography fontSize={16} component="div">{title}</Typography>
-              {priority && (
-                <Chip
-                  component="button"
-                  label={taskPriority}
-                  onClick={openTaskCardMenu}
-                  color={PriorityToColorMap[taskPriority]}
-                  className={classes.priorityChip}
                 />
-              )}
-            </div>
-          </Box>
-          <IconButton
-            onClick={(event) => {
-              event.stopPropagation();
-              onTaskOpen(id);
-            }}
-          >
-            <OpenInFull
+              </IconButton>
+            </ButtonGroup>
+          )}
+          {!appConfig.controls?.allowUpdatingStatus && (
+            <StatusIcon
               style={{
                 fontSize: '12px',
               }}
             />
-          </IconButton>
-        </div>
-      </CardContent>
+          )}
+
+          <Typography fontSize={13} component="div">
+            {title}
+          </Typography>
+        </Box>
+        <ButtonGroup>
+          {priority && (
+            <Tooltip title={priority}>
+              <IconButton onClick={openTaskCardMenu}>
+                <PriorityIconComponent
+                  style={{
+                    fontSize: '12px',
+                  }}
+                />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          <Tooltip title="Open Task">
+            <IconButton
+              onClick={(event) => {
+                event.stopPropagation();
+                onTaskOpen(id);
+              }}
+            >
+              <OpenInFull
+                style={{
+                  fontSize: '12px',
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        </ButtonGroup>
+      </div>
 
       <Menu
         elevation={0}
@@ -252,7 +241,7 @@ const TaskCard = ({
         {Object.entries(Priority).map(([key, value]) => (
           <MenuItem
             onClick={() => {
-              setTaskPriority(value);
+              // setTaskPriority(value);
               setCardMenuAnchorEl(null);
             }}
           >

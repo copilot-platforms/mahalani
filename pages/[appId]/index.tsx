@@ -2,7 +2,11 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import Layout from '../../components/Layout';
 import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
-import { AppContext, AppContextType, ClientAppConfig } from '../../utils/appContext';
+import {
+  AppContext,
+  AppContextType,
+  ClientAppConfig,
+} from '../../utils/appContext';
 import { fetchConfig } from '../api/config/apiConfigUtils';
 import * as _ from 'lodash';
 import { useRouter } from 'next/router';
@@ -44,9 +48,13 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
   const refreshAppData = async () => {
     const triggerPoolItem = new Date().getTime();
-    const getAppDataResult = await fetch(`/api/data?appId=${appId}&assigneeId=${clientData?.id}`, {
-      method: 'GET',
-    })
+    const getAppDataResult = await fetch(
+      `/api/data?appId=${appId}&assigneeId=${clientData?.id}`,
+      {
+        method: 'GET',
+      },
+    );
+    console.info('getAppDataResult', getAppDataResult);
     const appData = await getAppDataResult.json();
     const tasks = formatData(clientData, appData);
 
@@ -63,7 +71,7 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
   const handleUpdateAction = () => {
     // track the last time the user updated an action
     lastActionTime.current = new Date().getTime();
-  }
+  };
 
   useEffect(() => {
     if (!clientData) {
@@ -87,7 +95,11 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
   return (
     <AppContext.Provider value={appConfig}>
       <Layout title="Custom App - Task Management">
-        <TodoList title={`${clientFullName}'s tasks`} tasks={taskLists} onUpdateAction={handleUpdateAction} />
+        <TodoList
+          title={`${clientFullName}'s tasks`}
+          tasks={taskLists}
+          onUpdateAction={handleUpdateAction}
+        />
       </Layout>
     </AppContext.Provider>
   );
@@ -177,7 +189,7 @@ export async function getServerSideProps(context) {
   // -----------GET TASKS----------------
   let tasks: Array<Task> = [];
   try {
-    const airtableData = await loadAppData(appSetupData, clientData?.id)
+    const airtableData = await loadAppData(appSetupData, clientData?.id);
     tasks = formatData(clientData, airtableData);
   } catch (error) {
     console.log('error fetching tasks', error);
@@ -186,7 +198,7 @@ export async function getServerSideProps(context) {
   const appConfig = {
     controls: appSetupData.controls || '',
     defaultChannelType: appSetupData.defaultChannelType || null,
-  }
+  };
 
   console.info('loaded tasks', tasks.length);
 
