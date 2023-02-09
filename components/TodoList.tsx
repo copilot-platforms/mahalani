@@ -46,6 +46,9 @@ const useStyles = makeStyles()((theme) => ({
       padding: '0 400px',
     },
   },
+  dialogRoot: {
+    zIndex: 2,
+  },
 }));
 
 export const TodoListFilterContext = createContext<{
@@ -450,7 +453,13 @@ const TodoList: React.FC<{
         </DndProvider>
       </div>
       {selectedTask && (
-        <Dialog open onClose={() => setSelectedTask(null)}>
+        <Dialog
+          classes={{
+            root: classes.dialogRoot,
+          }}
+          open
+          onClose={() => setSelectedTask(null)}
+        >
           <DetailedCardView
             task={selectedTask}
             onEditDescription={(newDescription: string) =>

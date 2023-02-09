@@ -12,6 +12,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from 'react';
 import { Task } from './types';
+import { EditorInput } from './Editor';
 
 type DetailedCardViewProps = {
   task: Task;
@@ -63,44 +64,13 @@ export const DetailedCardView = ({
         <Typography gutterBottom variant="h5" component="div">
           Details: {title}
         </Typography>
-        {showDescriptionInput ? (
-          <TextareaAutosize
-            style={{ width: '100%', fontFamily: 'inherit', padding: '0.5rem' }}
-            placeholder="Description (optional)"
-            autoFocus
-            minRows={3}
-            value={descriptionInput}
-            onChange={(e) => {
-              const value = e.target.value;
-              setDescriptionInput(value);
-              onEditDescription(value);
-            }}
-            onBlur={() => setShowDescriptionInput(false)}
-          />
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              onClick={() => setShowDescriptionInput(true)}
-            >
-              {description || 'No description'}
-            </Typography>
-
-            <IconButton onClick={() => setShowDescriptionInput(true)}>
-              <EditIcon
-                style={{
-                  fontSize: 12,
-                }}
-              />
-            </IconButton>
-          </div>
-        )}
+        <EditorInput
+          value={descriptionInput}
+          onChange={(data) => {
+            setDescriptionInput(data);
+            onEditDescription(data);
+          }}
+        />
       </CardContent>
       {learnMoreLink && (
         <CardActions>
