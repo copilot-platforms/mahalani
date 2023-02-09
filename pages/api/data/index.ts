@@ -1,8 +1,12 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiRequest, NextApiResponse } from 'next';
 import { fetchConfig } from '../config/apiConfigUtils';
-import { addRecord, getAirtableClient, getAllRecords, updateRecord } from '../../../utils/airtableUtils';
+import {
+  addRecord,
+  getAirtableClient,
+  getAllRecords,
+  updateRecord,
+} from '../../../utils/airtableUtils';
 import { AppContextType } from '../../../utils/appContext';
-
 
 export const loadAppData = async (
   appData: AppContextType,
@@ -17,14 +21,13 @@ export const loadAppData = async (
   const airtableRecords = await getAllRecords(
     tableClient,
     appData.viewId,
-    `{Assignee ID} = "${clientId}"`,
+    `{Client ID} = "${clientId}"`,
   );
 
   console.info('num airtableRecords', airtableRecords.length);
 
   return airtableRecords;
 };
-
 
 /**
  * Get the config data for a given app id
@@ -42,15 +45,15 @@ const handleGetData = async (req: NextApiRequest, res: NextApiResponse) => {
   // config is found with key information that can be used to query
   // clients backend for data
   try {
-    const appConfigData = await fetchConfig(appId as string)
+    const appConfigData = await fetchConfig(appId as string);
     const appData = await loadAppData(appConfigData, assigneeId as string);
-    res.status(200).json(appData)
+    res.status(200).json(appData);
   } catch (ex) {
     console.log(ex);
   }
 
   return res.status(400).end();
-}
+};
 
 const handlePostData = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -69,7 +72,7 @@ const handlePostData = async (req: NextApiRequest, res: NextApiResponse) => {
     console.error('Error updating record', ex);
   }
   return res.status(500).end();
-}
+};
 
 const handlePatchData = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -82,7 +85,11 @@ const handlePatchData = async (req: NextApiRequest, res: NextApiResponse) => {
     );
 
     const tableClient = airtableClient(appSetupData.tableId);
-    const record = await updateRecord(tableClient, req.query.recordId as string, req.body);
+    const record = await updateRecord(
+      tableClient,
+      req.query.recordId as string,
+      req.body,
+    );
     res.status(200).json(record);
   } catch (ex) {
     console.error('Error updating record', ex);
@@ -93,14 +100,14 @@ const handlePatchData = async (req: NextApiRequest, res: NextApiResponse) => {
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {
     case 'GET':
-      return handleGetData(req, res)
+      return handleGetData(req, res);
     case 'PATCH':
-      return handlePatchData(req, res)
+      return handlePatchData(req, res);
     case 'POST':
-      return handlePostData(req, res)
+      return handlePostData(req, res);
     default:
-      return res.status(405).end()
+      return res.status(405).end();
   }
-}
+};
 
-export default handler
+export default handler;

@@ -29,7 +29,7 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
     priority: record.fields.Priority || '',
     rank: rank,
     attachments: record.fields['Attachments'],
-    description: record.fields['Description'],
+    description: record.fields['description'],
     learnMoreLink: record.fields['Learn More Link'],
     clientIdRef: record.fields['Assignee - Reference Record'],
   }));
@@ -54,6 +54,7 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
         method: 'GET',
       },
     );
+    console.info('getAppDataResult', getAppDataResult);
     const appData = await getAppDataResult.json();
     const tasks = formatData(clientData, appData);
 

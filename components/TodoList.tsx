@@ -53,14 +53,14 @@ export const TodoListFilterContext = createContext<{
   setFilter: (filter: string) => void;
 }>({
   filter: '',
-  setFilter: () => { },
+  setFilter: () => {},
 });
 
-const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: () => void }> = ({
-  tasks,
-  title,
-  onUpdateAction,
-}) => {
+const TodoList: React.FC<{
+  tasks: Array<Task>;
+  title: string;
+  onUpdateAction: () => void;
+}> = ({ tasks, title, onUpdateAction }) => {
   const router = useRouter();
   const { appId } = router.query;
   const { classes } = useStyles();
@@ -141,7 +141,7 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: ()
         body: JSON.stringify({
           Status: newStatus,
         }),
-      })
+      });
     } catch (ex) {
       console.error('Error updating record', ex);
     }
@@ -236,9 +236,45 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: ()
     });
 
     return () => {
-      window.removeEventListener('keydown', () => { });
+      window.removeEventListener('keydown', () => {});
     };
   }, []);
+
+  const handleEditDescription = async (taskId: string, description: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) {
+      return;
+    }
+
+    const updatedTask = {
+      ...task,
+      description,
+    };
+
+    setSelectedTask(updatedTask);
+    setTasksByStatus((currentState) => ({
+      ...currentState,
+      [task.status]: currentState[task.status].map((t) =>
+        t.id === taskId ? updatedTask : t,
+      ),
+    }));
+
+    console.info('tasksByStatus', tasksByStatus);
+    onUpdateAction();
+    try {
+      await fetch(`/api/data?appId=${appId}&recordId=${taskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: description,
+        }),
+      });
+    } catch (ex) {
+      console.error('Error updating record', ex);
+    }
+  };
 
   /**
    * Filter the tasks by title using the searchFilter.
@@ -312,111 +348,118 @@ const TodoList: React.FC<{ tasks: Array<Task>; title: string, onUpdateAction: ()
   };
 
   return (
-    <div>
-      <DndProvider backend={HTML5Backend}>
-        <TodoListFilterContext.Provider
-          value={{
-            filter: searchFilter,
-            setFilter: setSearchFilter,
-          }}
-        >
-          <FilterTodoListDialog
-            open={openFilterDialog}
-            onClose={() => {
-              setOpenFilterDialog(false);
+    <>
+      <div>
+        <DndProvider backend={HTML5Backend}>
+          <TodoListFilterContext.Provider
+            value={{
+              filter: searchFilter,
+              setFilter: setSearchFilter,
             }}
-          />
-          <div className={classes.root}>
-            <TaskListToolbar
-              title={title}
-              onToggleViewClick={handleToggleView}
-              onFilterClick={() => {
-                setOpenFilterDialog(true);
+          >
+            <FilterTodoListDialog
+              open={openFilterDialog}
+              onClose={() => {
+                setOpenFilterDialog(false);
               }}
-              viewMode={listViewMode}
             />
+            <div className={classes.root}>
+              <TaskListToolbar
+                title={title}
+                onToggleViewClick={handleToggleView}
+                onFilterClick={() => {
+                  setOpenFilterDialog(true);
+                }}
+                viewMode={listViewMode}
+              />
 
-            <Grid
-              container
-              mt={2}
-              gap={2}
-              justifyContent="center"
-              height={1}
-              className={clsx({
-                [classes.listViewContainer]: isListViewMode,
-              })}
-            >
-              {Object.entries(tasksByStatus).map(([status, tasks]) => (
-                <Grid item xs={12} md={isListViewMode ? 12 : 3} key={status}>
-                  <TaskColumn
-                    viewMode={listViewMode}
-                    title={status}
-                    onDrop={(item) => {
-                      handleDropTaskCard(item, status as TaskStatus);
-                    }}
-                  >
-                    {tasks.length === 0 && Boolean(searchFilter) && (
-                      <Typography variant="body2" color="textSecondary">
-                        No {status.toLowerCase()} tasks found
-                      </Typography>
-                    )}
-                    {tasks.map(
-                      ({
-                        title,
-                        assignee,
-                        description,
-                        status,
-                        priority,
-                        id,
-                        rank,
-                      }) => (
-                        <>
-                          <TaskCard
-                            viewMode={listViewMode}
-                            key={title}
-                            title={title}
-                            rank={rank}
-                            assignee={assignee}
-                            description={description}
-                            status={status}
-                            priority={priority}
-                            onTaskOpen={handleTaskOpen}
-                            id={id}
-                            onStatusChange={(newStatus: TaskStatus) =>
-                              handleStatusChanged(id, status, newStatus)
-                            }
+              <Grid
+                container
+                mt={2}
+                gap={2}
+                justifyContent="center"
+                height={1}
+                className={clsx({
+                  [classes.listViewContainer]: isListViewMode,
+                })}
+              >
+                {Object.entries(tasksByStatus).map(([status, tasks]) => (
+                  <Grid item xs={12} md={isListViewMode ? 12 : 3} key={status}>
+                    <TaskColumn
+                      viewMode={listViewMode}
+                      title={status}
+                      onDrop={(item) => {
+                        handleDropTaskCard(item, status as TaskStatus);
+                      }}
+                    >
+                      {tasks.length === 0 && Boolean(searchFilter) && (
+                        <Typography variant="body2" color="textSecondary">
+                          No {status.toLowerCase()} tasks found
+                        </Typography>
+                      )}
+                      {tasks.map(
+                        ({
+                          title,
+                          assignee,
+                          description,
+                          status,
+                          priority,
+                          id,
+                          rank,
+                        }) => (
+                          <>
+                            <TaskCard
+                              viewMode={listViewMode}
+                              key={title}
+                              title={title}
+                              rank={rank}
+                              assignee={assignee}
+                              description={description}
+                              status={status}
+                              priority={priority}
+                              onTaskOpen={handleTaskOpen}
+                              id={id}
+                              onStatusChange={(newStatus: TaskStatus) =>
+                                handleStatusChanged(id, status, newStatus)
+                              }
+                            />
+                          </>
+                        ),
+                      )}
+                      <>
+                        {showAddTaskForm[status] && (
+                          <AddTaskCardForm
+                            onAddTask={handleAddTask}
+                            columnStatus={status as TaskStatus}
                           />
-                        </>
-                      ),
-                    )}
-                    <>
-                      {showAddTaskForm[status] && (
-                        <AddTaskCardForm
-                          onAddTask={handleAddTask}
-                          columnStatus={status as TaskStatus}
-                        />
-                      )}
-                      {appConfig.controls?.allowAddingItems && (
-                        <AddTaskButton
-                          onClick={() => {
-                            handleAddTaskClick(status as TaskStatus);
-                          }}
-                        />
-                      )}
-                    </>
-                  </TaskColumn>
-                </Grid>
-              ))}
-            </Grid>
-          </div>
-        </TodoListFilterContext.Provider>
-      </DndProvider>
+                        )}
+                        {appConfig.controls?.allowAddingItems && (
+                          <AddTaskButton
+                            onClick={() => {
+                              handleAddTaskClick(status as TaskStatus);
+                            }}
+                          />
+                        )}
+                      </>
+                    </TaskColumn>
+                  </Grid>
+                ))}
+              </Grid>
+            </div>
+          </TodoListFilterContext.Provider>
+        </DndProvider>
+      </div>
       {selectedTask && (
         <Dialog open onClose={() => setSelectedTask(null)}>
-          <DetailedCardView task={selectedTask} />
+          <DetailedCardView
+            task={selectedTask}
+            onEditDescription={(newDescription: string) =>
+              handleEditDescription(selectedTask.id, newDescription)
+            }
+          />
         </Dialog>
       )}
-    </div>
+    </>
   );
 };
 
