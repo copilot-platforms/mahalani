@@ -82,7 +82,7 @@ const TaskCard = ({
 }: TaskCardProps) => {
   const { classes } = useStyles({ viewMode });
   const appConfig = useContext(AppContext);
-  const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
+  // const [taskPriority, setTaskPriority] = React.useState(priority?.toString());
   const handleStatusChange = async (event: SelectChangeEvent) => {
     onStatusChange(event.target.value as TaskStatus);
   };
@@ -92,7 +92,7 @@ const TaskCard = ({
   const [taskCardMenu, setCardMenuAnchorEl] =
     React.useState<HTMLDivElement | null>(null);
 
-  const PriorityIconComponent = PriorityToComponentMap[taskPriority];
+  const PriorityIconComponent = PriorityToComponentMap[priority];
 
   const [{ opacity }, dragRef] = useDrag(
     () => ({
@@ -241,7 +241,7 @@ const TaskCard = ({
         {Object.entries(Priority).map(([key, value]) => (
           <MenuItem
             onClick={() => {
-              setTaskPriority(value);
+              // setTaskPriority(value);
               setCardMenuAnchorEl(null);
             }}
           >

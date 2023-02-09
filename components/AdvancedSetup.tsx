@@ -46,14 +46,14 @@ export const AdvancedSetup = ({ appSetupData, onConfigSave }: AdvancedSetupProps
           </Box>
         </Grid>
       </Grid>
-      {/* <Grid item xs={12} container>
+      <Grid item xs={12} container>
         <Grid item xs={9}>Let clients edit details</Grid>
         <Grid item xs={3}>
           <Box display="flex" justifyContent="flex-end">
             <Switch id="allowingUpdatingDetails" checked={allowingUpdatingDetails} onChange={handleToggleControl} />
           </Box>
         </Grid>
-      </Grid> */}
+      </Grid>
     </Grid>
   )
 };
