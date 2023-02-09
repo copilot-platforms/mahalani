@@ -56,7 +56,7 @@ export const TodoListFilterContext = createContext<{
   setFilter: (filter: string) => void;
 }>({
   filter: '',
-  setFilter: () => {},
+  setFilter: () => { },
 });
 
 const TodoList: React.FC<{
@@ -239,7 +239,7 @@ const TodoList: React.FC<{
     });
 
     return () => {
-      window.removeEventListener('keydown', () => {});
+      window.removeEventListener('keydown', () => { });
     };
   }, []);
 
@@ -271,7 +271,7 @@ const TodoList: React.FC<{
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          description: description,
+          Description: description,
         }),
       });
     } catch (ex) {

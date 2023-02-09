@@ -29,7 +29,7 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
     priority: record.fields.Priority || '',
     rank: rank,
     attachments: record.fields['Attachments'],
-    description: record.fields['description'],
+    description: record.fields['Description'],
     learnMoreLink: record.fields['Learn More Link'],
     clientIdRef: record.fields['Assignee - Reference Record'],
   }));

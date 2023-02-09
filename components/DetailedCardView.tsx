@@ -53,13 +53,13 @@ export const DetailedCardView = ({
         width: 500px;
       `}
     >
-      <CardMedia
+      {imageUrl && <CardMedia
         component="img"
         alt={`title - image`}
         height="300"
         width="500"
         image={imageUrl || placeholderImage}
-      />
+      />}
       <CardContent>
         <Typography gutterBottom variant="h5" component="div">
           Details: {title}
