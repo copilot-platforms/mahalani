@@ -96,7 +96,7 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
     <AppContext.Provider value={appConfig}>
       <Layout title="Custom App - Task Management">
         <TodoList
-          title={`${clientFullName}'s tasks`}
+          title={``}
           tasks={taskLists}
           onUpdateAction={handleUpdateAction}
         />
