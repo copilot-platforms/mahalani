@@ -208,34 +208,34 @@ const TodoList: React.FC<{
         setOpenFilterDialog(true);
       }
 
-      if (e.key === 'b' && e.metaKey) {
-        e.preventDefault();
-        handleToggleView();
-      }
+      // if (e.key === 'b' && e.metaKey) {
+      //   e.preventDefault();
+      //   handleToggleView();
+      // }
 
-      if (e.key === 'u' && e.metaKey) {
-        e.preventDefault();
-        setShowAddTaskForm((currentState) => ({
-          ...currentState,
-          [TaskStatus.Todo]: true,
-        }));
-      }
+      // if (e.key === 'u' && e.metaKey) {
+      //   e.preventDefault();
+      //   setShowAddTaskForm((currentState) => ({
+      //     ...currentState,
+      //     [TaskStatus.Todo]: true,
+      //   }));
+      // }
 
-      if (e.key === 'i' && e.metaKey) {
-        e.preventDefault();
-        setShowAddTaskForm((currentState) => ({
-          ...currentState,
-          [TaskStatus.InProgress]: true,
-        }));
-      }
+      // if (e.key === 'i' && e.metaKey) {
+      //   e.preventDefault();
+      //   setShowAddTaskForm((currentState) => ({
+      //     ...currentState,
+      //     [TaskStatus.InProgress]: true,
+      //   }));
+      // }
 
-      if (e.key === 'd' && e.metaKey) {
-        e.preventDefault();
-        setShowAddTaskForm((currentState) => ({
-          ...currentState,
-          [TaskStatus.Done]: true,
-        }));
-      }
+      // if (e.key === 'd' && e.metaKey) {
+      //   e.preventDefault();
+      //   setShowAddTaskForm((currentState) => ({
+      //     ...currentState,
+      //     [TaskStatus.Done]: true,
+      //   }));
+      // }
     });
 
     return () => {
