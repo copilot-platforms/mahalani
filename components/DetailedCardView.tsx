@@ -75,7 +75,7 @@ export const DetailedCardView = ({
       {learnMoreLink && (
         <CardActions>
           <Button size="small" href={learnMoreLink} target="_blank">
-            Learn More
+            View
           </Button>
         </CardActions>
       )}
