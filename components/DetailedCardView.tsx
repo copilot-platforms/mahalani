@@ -62,7 +62,7 @@ export const DetailedCardView = ({
       />}
       <CardContent>
         <Typography gutterBottom variant="h5" component="div">
-          Details: {title}
+          {title}
         </Typography>
         <EditorInput
           value={descriptionInput}
