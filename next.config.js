@@ -2,7 +2,7 @@ const securityHeaders = [
   {
     key: 'Content-Security-Policy',
     value:
-      'frame-ancestors https://dashboard.copilot-staging.com  https://dashboard.copilot.com https://*.copilot-staging.app https://*.copilot.app https://clients.infinite.law;',
+      'frame-ancestors https://dashboard.copilot-staging.com  https://dashboard.copilot.com https://*.copilot-staging.app https://*.copilot.app https://clients.infinite.law https://portal.potluckportal.com/;',
   },
 ];
 
