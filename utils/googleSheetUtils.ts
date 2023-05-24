@@ -55,7 +55,7 @@ export const getRecordsFromSheet = async (
     const rowId = row._rowNumber;
     const fields = {};
     headerValues.map((header) => {
-      fields[header] = row[header];
+      fields[header] = row[header] || '';
     });
     return {
       id: rowId,
@@ -78,8 +78,16 @@ export const addRecordInSheet = async (
   rowData: any,
 ): Promise<any> => {
   const sheet = await getSheet(sheetId);
-  const newRecord = await sheet.addRow(rowData);
-  await newRecord.save();
+  await sheet.loadHeaderRow();
+  const headerValues = sheet.headerValues;
+  const newRow = await sheet.addRow(rowData);
+  await newRow.save();
+
+  const newRecord = {};
+
+  headerValues.map((header) => {
+    newRecord[header] = newRow[header] || '';
+  });
 
   return newRecord;
 };
@@ -97,6 +105,8 @@ export const updateRecordInSheet = async (
   rowData: any,
 ) => {
   const sheet = await getSheet(sheetId);
+  await sheet.loadHeaderRow();
+  const headerValues = sheet.headerValues;
   const rows = await sheet.getRows(); // all tasks
 
   // task that needs to be updated
@@ -115,7 +125,13 @@ export const updateRecordInSheet = async (
   if (rowData.Description) {
     row.Description = rowData.Description;
   }
-  row.save();
+  await row.save();
 
-  return row;
+  const updatedRecord = {};
+
+  headerValues.map((header) => {
+    updatedRecord[header] = row[header] || '';
+  });
+
+  return updatedRecord;
 };

@@ -22,6 +22,7 @@ import { AddTaskCardForm } from './AddTaskCard';
 import { DetailedCardView } from './DetailedCardView';
 import { useRouter } from 'next/router';
 import { AppContext } from '../utils/appContext';
+import { isDBUsingGoogleSheets } from '../utils/googleSheetUtils';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -56,7 +57,7 @@ export const TodoListFilterContext = createContext<{
   setFilter: (filter: string) => void;
 }>({
   filter: '',
-  setFilter: () => { },
+  setFilter: () => {},
 });
 
 const TodoList: React.FC<{
@@ -65,7 +66,7 @@ const TodoList: React.FC<{
   onUpdateAction: () => void;
 }> = ({ tasks, title, onUpdateAction }) => {
   const router = useRouter();
-  const { appId } = router.query;
+  const { appId, clientId } = router.query;
   const { classes } = useStyles();
   const appConfig = useContext(AppContext);
   // Get the current client airtable record ref which lives in the tasks
@@ -239,7 +240,7 @@ const TodoList: React.FC<{
     });
 
     return () => {
-      window.removeEventListener('keydown', () => { });
+      window.removeEventListener('keydown', () => {});
     };
   }, []);
 
