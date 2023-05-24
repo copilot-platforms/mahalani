@@ -115,7 +115,7 @@ const TodoList: React.FC<{
   ) => {
     const existingTasks = tasksByStatus[existingStatus];
     const newTasks = tasksByStatus[newStatus];
-    const taskToMove = existingTasks.find((task) => task.id === id);
+    const taskToMove = existingTasks?.find((task) => task.id === id);
 
     // if the status is the same, do nothing
     if (existingStatus === newStatus) {
