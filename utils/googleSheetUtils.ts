@@ -15,8 +15,9 @@ const GOOGLE_BOT_CREDS = {
  * @param config config saved in S3
  * @returns true if database is Google Sheet
  */
-export const isDBUsingGoogleSheets = (config: AppContextType) =>
+export const isDBUsingGoogleSheets = (config: AppContextType) => {
   Boolean(config.googleSheetId);
+}
 
 /**
  * Get the google sheet instance
