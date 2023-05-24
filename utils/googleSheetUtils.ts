@@ -113,19 +113,24 @@ export const updateRecordInSheet = async (
   const row = rows.find((r) => r._rowNumber === Number(recordId));
   if (!row) return null;
 
+  await sheet.loadCells();
+
   //currently we are only updating status and description of the task
 
   // if udpate values have status
   // update the status
   if (rowData.Status) {
-    row.Status = rowData.Status;
+    const cell = sheet.getCellByA1(`C${recordId}`);
+    cell.value = rowData.Status;
+    await cell.save();
   }
   // if udpate values have description
   // update the description of the task
   if (rowData.Description) {
-    row.Description = rowData.Description;
+    const cell = sheet.getCellByA1(`B${recordId}`);
+    cell.value = rowData.Description;
+    await cell.save();
   }
-  await row.save();
 
   const updatedRecord = {};
 
