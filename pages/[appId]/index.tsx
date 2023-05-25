@@ -46,6 +46,8 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
   const router = useRouter();
   const { appId } = router.query;
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
+  const isUpdatingTask = useRef(false);
+
   const refreshAppData = async () => {
     const triggerPoolItem = new Date().getTime();
     const getAppDataResult = await fetch(
@@ -58,7 +60,7 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
     const appData = await getAppDataResult.json();
     const tasks = formatData(clientData, appData);
 
-    if (triggerPoolItem < lastActionTime.current) {
+    if (triggerPoolItem < lastActionTime.current || isUpdatingTask.current) {
       return;
     }
 
@@ -68,9 +70,12 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
 
   const lastActionTime = useRef(new Date().getTime());
 
-  const handleUpdateAction = () => {
+  const handleUpdateAction = (isUpdating: boolean) => {
     // track the last time the user updated an action
     lastActionTime.current = new Date().getTime();
+
+    // when task update request is pending this will be true
+    isUpdatingTask.current = isUpdating;
   };
 
   useEffect(() => {
