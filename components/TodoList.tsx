@@ -277,6 +277,8 @@ const TodoList: React.FC<{
           Description: description,
         }),
       });
+      // close details update modal
+      setSelectedTask(null);
     } catch (ex) {
       console.error('Error updating record', ex);
     } finally {
