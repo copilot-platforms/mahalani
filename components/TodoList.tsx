@@ -63,7 +63,7 @@ export const TodoListFilterContext = createContext<{
 const TodoList: React.FC<{
   tasks: Array<Task>;
   title: string;
-  onUpdateAction: () => void;
+  onUpdateAction: (isUpdating: boolean) => void;
 }> = ({ tasks, title, onUpdateAction }) => {
   const router = useRouter();
   const { appId } = router.query;
@@ -135,7 +135,7 @@ const TodoList: React.FC<{
 
     setTasksByStatus(updatedTasks);
 
-    onUpdateAction();
+    onUpdateAction(true);
     try {
       await fetch(`/api/data?appId=${appId}&recordId=${id}`, {
         method: 'PATCH',
@@ -148,6 +148,8 @@ const TodoList: React.FC<{
       });
     } catch (ex) {
       console.error('Error updating record', ex);
+    } finally {
+      onUpdateAction(false);
     }
   };
 
@@ -264,7 +266,7 @@ const TodoList: React.FC<{
     }));
 
     console.info('tasksByStatus', tasksByStatus);
-    onUpdateAction();
+    onUpdateAction(true);
     try {
       await fetch(`/api/data?appId=${appId}&recordId=${taskId}`, {
         method: 'PATCH',
@@ -277,6 +279,8 @@ const TodoList: React.FC<{
       });
     } catch (ex) {
       console.error('Error updating record', ex);
+    } finally {
+      onUpdateAction(false);
     }
   };
 
@@ -334,7 +338,7 @@ const TodoList: React.FC<{
     }));
 
     try {
-      onUpdateAction();
+      onUpdateAction(true);
       await fetch(`/api/data?appId=${appId}`, {
         method: 'POST',
         headers: {
@@ -348,6 +352,8 @@ const TodoList: React.FC<{
       });
     } catch (error) {
       console.error('Error adding record', error);
+    } finally {
+      onUpdateAction(false);
     }
   };
 
