@@ -18,7 +18,7 @@ type AppPagePros = {
   appConfig: ClientAppConfig;
 };
 
-const DATA_REFRESH_TIMEOUT = 3000;
+const DATA_REFRESH_TIMEOUT = 6000;
 
 const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
   const formattedData: Array<Task> = airtableRecords.map((record, rank) => ({
