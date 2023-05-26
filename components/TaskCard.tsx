@@ -51,7 +51,7 @@ const useStyles = makeStyles<{ viewMode: TodoListViewMode }>()((theme) => ({
 interface TaskCardProps extends Task {
   onStatusChange: (status: TaskStatus) => void;
   viewMode: TodoListViewMode;
-  onTaskOpen: (id: string) => void;
+  onTaskOpen: (id: string, status: string) => void;
 }
 
 const PriorityToComponentMap = {
@@ -112,10 +112,6 @@ const TaskCard = ({
   const openTaskCardMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     return;
-  };
-
-  const openTaskCard = () => {
-    onTaskOpen(id);
   };
 
   return (
@@ -181,7 +177,7 @@ const TaskCard = ({
             <IconButton
               onClick={(event) => {
                 event.stopPropagation();
-                onTaskOpen(id);
+                onTaskOpen(id, status);
               }}
             >
               <OpenInFull
