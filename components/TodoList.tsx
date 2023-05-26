@@ -183,10 +183,12 @@ const TodoList: React.FC<{
   /**
    * handle task card opened
    */
-  const handleTaskOpen = (taskId: string) => {
+  const handleTaskOpen = (taskId: string, status: string) => {
     // when a taskId is selected we should set the state for the currently select task and use that
     // to show the dialog
-    setSelectedTask(tasks.find((t) => t.id === taskId) || null);
+    setSelectedTask(
+      tasksByStatus[status]?.find((t) => t.id === taskId) || null,
+    );
   };
 
   /**
