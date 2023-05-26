@@ -1,16 +1,8 @@
-import {
-  Container,
-  Box,
-  Grid,
-  IconButton,
-  Theme,
-  Typography,
-  Dialog,
-} from '@mui/material';
+import { Container, Box, Grid, Typography, Dialog } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus, TodoListViewMode } from './types';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TaskListToolbar } from './TaskListToolbar';
@@ -22,7 +14,6 @@ import { AddTaskCardForm } from './AddTaskCard';
 import { DetailedCardView } from './DetailedCardView';
 import { useRouter } from 'next/router';
 import { AppContext } from '../utils/appContext';
-import { isDBUsingGoogleSheets } from '../utils/googleSheetUtils';
 
 const TaskStatuses = [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Done];
 type DroppedTaskCardData = { taskId: string };
@@ -63,7 +54,7 @@ export const TodoListFilterContext = createContext<{
 const TodoList: React.FC<{
   tasks: Array<Task>;
   title: string;
-  onUpdateAction: (isUpdating: boolean) => void;
+  onUpdateAction: (id: string) => void;
 }> = ({ tasks, title, onUpdateAction }) => {
   const router = useRouter();
   const { appId } = router.query;
@@ -101,6 +92,7 @@ const TodoList: React.FC<{
     setTasksByStatus(filteredTasks);
   }, [tasks]);
 
+  const controller = useRef<AbortController | null>(null);
   /**
    * Move the task from one status to another.
    * @param id task id
@@ -113,6 +105,8 @@ const TodoList: React.FC<{
     existingStatus: TaskStatus,
     newStatus: TaskStatus,
   ) => {
+    if (controller.current) controller.current.abort();
+    controller.current = new AbortController();
     const existingTasks = tasksByStatus[existingStatus];
     const newTasks = tasksByStatus[newStatus];
     const taskToMove = existingTasks?.find((task) => task.id === id);
@@ -135,10 +129,11 @@ const TodoList: React.FC<{
 
     setTasksByStatus(updatedTasks);
 
-    onUpdateAction(true);
+    onUpdateAction(id);
     try {
       await fetch(`/api/data?appId=${appId}&recordId=${id}`, {
         method: 'PATCH',
+        signal: controller.current.signal,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -146,10 +141,11 @@ const TodoList: React.FC<{
           Status: newStatus,
         }),
       });
+      controller.current = null;
     } catch (ex) {
       console.error('Error updating record', ex);
     } finally {
-      onUpdateAction(false);
+      onUpdateAction(id);
     }
   };
 
@@ -268,7 +264,7 @@ const TodoList: React.FC<{
     }));
 
     console.info('tasksByStatus', tasksByStatus);
-    onUpdateAction(true);
+    onUpdateAction(taskId);
     try {
       await fetch(`/api/data?appId=${appId}&recordId=${taskId}`, {
         method: 'PATCH',
@@ -284,7 +280,7 @@ const TodoList: React.FC<{
     } catch (ex) {
       console.error('Error updating record', ex);
     } finally {
-      onUpdateAction(false);
+      onUpdateAction(taskId);
     }
   };
 
@@ -341,8 +337,9 @@ const TodoList: React.FC<{
       [newTask.status]: false,
     }));
 
+    const pendingRequestId = Date.now().toString();
     try {
-      onUpdateAction(true);
+      onUpdateAction(pendingRequestId);
       await fetch(`/api/data?appId=${appId}`, {
         method: 'POST',
         headers: {
@@ -357,7 +354,7 @@ const TodoList: React.FC<{
     } catch (error) {
       console.error('Error adding record', error);
     } finally {
-      onUpdateAction(false);
+      onUpdateAction(pendingRequestId);
     }
   };
 

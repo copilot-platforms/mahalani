@@ -64,6 +64,7 @@ const handleGetData = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(200).json(appData);
   } catch (ex) {
     console.log(ex);
+    res.status(500).json(ex);
   }
 
   return res.status(400).end();
@@ -124,6 +125,7 @@ const handlePatchData = async (req: NextApiRequest, res: NextApiResponse) => {
     }
   } catch (ex) {
     console.error('Error updating record', ex);
+    res.status(500).json(ex);
   }
   return res.status(500).end();
 };
