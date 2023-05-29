@@ -41,3 +41,10 @@ export enum TodoListViewMode {
   Board = 'board',
   List = 'list',
 }
+
+export type AddRecordInput = {
+  Name: string;
+  Status: TaskStatus;
+  'Assignee - Reference Record': string | null;
+  'Assignee ID': string;
+};

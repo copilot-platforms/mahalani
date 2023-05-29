@@ -3,6 +3,7 @@ import {
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet';
 import { AppContextType } from './appContext';
+import { AddRecordInput } from '../components/types';
 
 const GOOGLE_BOT_CREDS = {
   private_key: process.env.GOOGLE_SHEET_PRIVATE_KEY.replace(/\\n/gm, '\n'),
@@ -75,12 +76,33 @@ export const getRecordsFromSheet = async (
  */
 export const addRecordInSheet = async (
   sheetId: string,
-  rowData: any,
+  rowData: AddRecordInput,
 ): Promise<any> => {
   const sheet = await getSheet(sheetId);
   await sheet.loadHeaderRow();
   const headerValues = sheet.headerValues;
-  const newRow = await sheet.addRow(rowData);
+
+  const body = { ...rowData };
+
+  // when user adds first task reference record will be empty
+  if (!rowData['Assignee - Reference Record']) {
+    const assigneeMapSheet = await getSheet(sheetId, 'Assignee ID Mapping'); // get assignee map sheet
+    const records = await assigneeMapSheet.getRows(); // all assignees
+
+    // find assignee based on 'Assignee ID' available in request
+    const currentAssignee = records.find(
+      (r) => r['Assignee ID'] === rowData['Assignee ID'],
+    );
+
+    if (currentAssignee)
+      body['Assignee - Reference Record'] = currentAssignee['Assignee Name'];
+  }
+  // we don't need to send assignee id here
+  // it will be autofilled by the google sheet based
+  // on assignee reference
+  delete body['Assignee ID'];
+
+  const newRow = await sheet.addRow(body);
   await newRow.save();
 
   const newRecord = {};
