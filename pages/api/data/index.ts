@@ -81,6 +81,7 @@ const handlePostData = async (req: NextApiRequest, res: NextApiResponse) => {
       );
       res.status(200).json(record);
     } else {
+      delete req.body['Assignee ID']; // we don't need client id for Airtable flow
       // Get the airtable rest client instance
       const airtableClient = getAirtableClient(
         appSetupData.airtableApiKey,
