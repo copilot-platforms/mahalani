@@ -57,7 +57,7 @@ const TodoList: React.FC<{
   onUpdateAction: (id: string) => void;
 }> = ({ tasks, title, onUpdateAction }) => {
   const router = useRouter();
-  const { appId } = router.query;
+  const { appId, clientId } = router.query;
   const { classes } = useStyles();
   const appConfig = useContext(AppContext);
   // Get the current client airtable record ref which lives in the tasks
