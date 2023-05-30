@@ -55,10 +55,13 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
 
   const refreshAppData = async () => {
     try {
+      // check if there is any pending request
+      // if we have pending requests then don't refresh the app data
       if (pendingRequestIds.current.length) {
         return;
       }
 
+      // fetching latest task
       const getAppDataResult = await fetch(
         `/api/data?appId=${appId}&assigneeId=${clientData?.id}`,
         {
@@ -70,14 +73,11 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
       const appData = await getAppDataResult.json();
       const tasks = formatData(clientData, appData);
 
-      setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title);
-      lastActionTime.current = new Date().getTime();
+      setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
     } catch (error) {
       console.error(error);
     }
   };
-
-  const lastActionTime = useRef(new Date().getTime());
 
   const handleUpdateAction = (id: string) => {
     taskListRequestController.current.abort('An update request is pending'); // cancel any ongoing task GET request

@@ -180,8 +180,10 @@ const TodoList: React.FC<{
    * handle task card opened
    */
   const handleTaskOpen = (taskId: string, status: string) => {
-    // when a taskId is selected we should set the state for the currently select task and use that
+    // when task is selected we should set the state for the currently select task and use that
     // to show the dialog
+    // 1. Use status to get same status task from 'taskByStatus' state
+    // 2. Use taskId is get the selected task from the step 1 array list
     setSelectedTask(
       tasksByStatus[status]?.find((t) => t.id === taskId) || null,
     );
