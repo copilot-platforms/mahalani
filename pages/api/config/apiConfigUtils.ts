@@ -30,11 +30,7 @@ export const fetchConfig = async (appId: string) => {
 
     const responseBuffer = Buffer.concat(chunks);
     const config = JSON.parse(responseBuffer.toString());
-    return {
-      ...config,
-      airtableApiKey: '',
-      googleSheetId: '1Jyv2l-l3bhaNdO5tmVhl2ztRfepkYo95tPHIVleZbhE',
-    };
+    return config;
   } catch (err) {
     console.log('Error', err);
     return null;
