@@ -10,9 +10,10 @@ import {
   IconButton,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Task } from './types';
 import { EditorInput } from './Editor';
+import { AppContext } from '../utils/appContext';
 
 type DetailedCardViewProps = {
   task: Task;
@@ -43,6 +44,7 @@ export const DetailedCardView = ({
   onEditDescription,
 }: DetailedCardViewProps) => {
   const { title, description, learnMoreLink } = task;
+  const appConfig = useContext(AppContext);
   const imageUrl = getImageFromAttachment(task);
   const [descriptionInput, setDescriptionInput] = useState(description || '');
   const [showDescriptionInput, setShowDescriptionInput] = useState(false);
@@ -53,13 +55,15 @@ export const DetailedCardView = ({
         width: 500px;
       `}
     >
-      {imageUrl && <CardMedia
-        component="img"
-        alt={`title - image`}
-        height="300"
-        width="500"
-        image={imageUrl || placeholderImage}
-      />}
+      {imageUrl && (
+        <CardMedia
+          component="img"
+          alt={`title - image`}
+          height="300"
+          width="500"
+          image={imageUrl || placeholderImage}
+        />
+      )}
       <CardContent>
         <Typography gutterBottom variant="h5" component="div">
           {title}
@@ -68,17 +72,36 @@ export const DetailedCardView = ({
           value={descriptionInput}
           onChange={(data) => {
             setDescriptionInput(data);
-            onEditDescription(data);
           }}
         />
       </CardContent>
-      {learnMoreLink && (
-        <CardActions>
-          <Button size="small" href={learnMoreLink} target="_blank">
+      <CardActions
+        css={css`
+          padding: 16px;
+        `}
+      >
+        {appConfig.controls.allowingUpdatingDetails && (
+          <Button
+            size="small"
+            onClick={() => onEditDescription(descriptionInput)}
+            variant="contained"
+          >
+            Save
+          </Button>
+        )}
+        {learnMoreLink && (
+          <Button
+            size="small"
+            href={learnMoreLink}
+            target="_blank"
+            css={css`
+              margin-left: auto;
+            `}
+          >
             View
           </Button>
-        </CardActions>
-      )}
+        )}
+      </CardActions>
     </Card>
   );
 };

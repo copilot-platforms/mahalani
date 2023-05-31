@@ -1,16 +1,8 @@
-import {
-  Container,
-  Box,
-  Grid,
-  IconButton,
-  Theme,
-  Typography,
-  Dialog,
-} from '@mui/material';
+import { Container, Box, Grid, Typography, Dialog } from '@mui/material';
 import TaskCard from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { Task, TaskStatus, TodoListViewMode } from './types';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TaskListToolbar } from './TaskListToolbar';
@@ -56,16 +48,16 @@ export const TodoListFilterContext = createContext<{
   setFilter: (filter: string) => void;
 }>({
   filter: '',
-  setFilter: () => { },
+  setFilter: () => {},
 });
 
 const TodoList: React.FC<{
   tasks: Array<Task>;
   title: string;
-  onUpdateAction: () => void;
+  onUpdateAction: (id: string) => void;
 }> = ({ tasks, title, onUpdateAction }) => {
   const router = useRouter();
-  const { appId } = router.query;
+  const { appId, clientId } = router.query;
   const { classes } = useStyles();
   const appConfig = useContext(AppContext);
   // Get the current client airtable record ref which lives in the tasks
@@ -100,6 +92,7 @@ const TodoList: React.FC<{
     setTasksByStatus(filteredTasks);
   }, [tasks]);
 
+  const controller = useRef<AbortController | null>(null);
   /**
    * Move the task from one status to another.
    * @param id task id
@@ -112,9 +105,11 @@ const TodoList: React.FC<{
     existingStatus: TaskStatus,
     newStatus: TaskStatus,
   ) => {
+    if (controller.current) controller.current.abort();
+    controller.current = new AbortController();
     const existingTasks = tasksByStatus[existingStatus];
     const newTasks = tasksByStatus[newStatus];
-    const taskToMove = existingTasks.find((task) => task.id === id);
+    const taskToMove = existingTasks?.find((task) => task.id === id);
 
     // if the status is the same, do nothing
     if (existingStatus === newStatus) {
@@ -134,10 +129,11 @@ const TodoList: React.FC<{
 
     setTasksByStatus(updatedTasks);
 
-    onUpdateAction();
+    onUpdateAction(id);
     try {
       await fetch(`/api/data?appId=${appId}&recordId=${id}`, {
         method: 'PATCH',
+        signal: controller.current.signal,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -145,8 +141,11 @@ const TodoList: React.FC<{
           Status: newStatus,
         }),
       });
+      controller.current = null;
     } catch (ex) {
       console.error('Error updating record', ex);
+    } finally {
+      onUpdateAction(id);
     }
   };
 
@@ -180,10 +179,14 @@ const TodoList: React.FC<{
   /**
    * handle task card opened
    */
-  const handleTaskOpen = (taskId: string) => {
-    // when a taskId is selected we should set the state for the currently select task and use that
+  const handleTaskOpen = (taskId: string, status: string) => {
+    // when task is selected we should set the state for the currently select task and use that
     // to show the dialog
-    setSelectedTask(tasks.find((t) => t.id === taskId) || null);
+    // 1. Use status to get same status task from 'taskByStatus' state
+    // 2. Use taskId is get the selected task from the step 1 array list
+    setSelectedTask(
+      tasksByStatus[status]?.find((t) => t.id === taskId) || null,
+    );
   };
 
   /**
@@ -239,7 +242,7 @@ const TodoList: React.FC<{
     });
 
     return () => {
-      window.removeEventListener('keydown', () => { });
+      window.removeEventListener('keydown', () => {});
     };
   }, []);
 
@@ -263,7 +266,7 @@ const TodoList: React.FC<{
     }));
 
     console.info('tasksByStatus', tasksByStatus);
-    onUpdateAction();
+    onUpdateAction(taskId);
     try {
       await fetch(`/api/data?appId=${appId}&recordId=${taskId}`, {
         method: 'PATCH',
@@ -274,8 +277,12 @@ const TodoList: React.FC<{
           Description: description,
         }),
       });
+      // close details update modal
+      setSelectedTask(null);
     } catch (ex) {
       console.error('Error updating record', ex);
+    } finally {
+      onUpdateAction(taskId);
     }
   };
 
@@ -332,8 +339,9 @@ const TodoList: React.FC<{
       [newTask.status]: false,
     }));
 
+    const pendingRequestId = Date.now().toString();
     try {
-      onUpdateAction();
+      onUpdateAction(pendingRequestId);
       await fetch(`/api/data?appId=${appId}`, {
         method: 'POST',
         headers: {
@@ -343,10 +351,13 @@ const TodoList: React.FC<{
           Name: newTask.title,
           Status: newTask.status,
           'Assignee - Reference Record': clientIdRef,
+          'Assignee ID': clientId,
         }),
       });
     } catch (error) {
       console.error('Error adding record', error);
+    } finally {
+      onUpdateAction(pendingRequestId);
     }
   };
 

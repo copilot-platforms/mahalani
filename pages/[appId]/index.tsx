@@ -11,14 +11,18 @@ import { fetchConfig } from '../api/config/apiConfigUtils';
 import * as _ from 'lodash';
 import { useRouter } from 'next/router';
 import { loadAppData } from '../api/data';
+import { isDBUsingGoogleSheets } from '../../utils/googleSheetUtils';
 
+type DBType = 'google_sheet' | 'airtable';
 type AppPagePros = {
   clientData: AssigneeDataType | null;
   tasks: Array<Task>;
   appConfig: ClientAppConfig;
+  dbType: DBType;
 };
 
-const DATA_REFRESH_TIMEOUT = 3000;
+const AIRTABLE_DATA_REFRESH_TIMEOUT = 3000;
+const GOOGLESHEET_DATA_REFRESH_TIMEOUT = 6000;
 
 const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
   const formattedData: Array<Task> = airtableRecords.map((record, rank) => ({
@@ -42,35 +46,51 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
  * @returns
  */
 
-const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
+const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
   const router = useRouter();
   const { appId } = router.query;
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
+  const pendingRequestIds = useRef([]);
+  const taskListRequestController = useRef(new AbortController());
+
   const refreshAppData = async () => {
-    const triggerPoolItem = new Date().getTime();
-    const getAppDataResult = await fetch(
-      `/api/data?appId=${appId}&assigneeId=${clientData?.id}`,
-      {
-        method: 'GET',
-      },
-    );
-    console.info('getAppDataResult', getAppDataResult);
-    const appData = await getAppDataResult.json();
-    const tasks = formatData(clientData, appData);
+    try {
+      // check if there is any pending request
+      // if we have pending requests then don't refresh the app data
+      if (pendingRequestIds.current.length) {
+        return;
+      }
 
-    if (triggerPoolItem < lastActionTime.current) {
-      return;
+      // fetching latest task
+      const getAppDataResult = await fetch(
+        `/api/data?appId=${appId}&assigneeId=${clientData?.id}`,
+        {
+          method: 'GET',
+          signal: taskListRequestController.current.signal,
+        },
+      );
+      console.info('getAppDataResult', getAppDataResult);
+      const appData = await getAppDataResult.json();
+      const tasks = formatData(clientData, appData);
+
+      setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
+    } catch (error) {
+      console.error(error);
     }
-
-    setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title);
-    lastActionTime.current = new Date().getTime();
   };
 
-  const lastActionTime = useRef(new Date().getTime());
+  const handleUpdateAction = (id: string) => {
+    taskListRequestController.current.abort('An update request is pending'); // cancel any ongoing task GET request
 
-  const handleUpdateAction = () => {
-    // track the last time the user updated an action
-    lastActionTime.current = new Date().getTime();
+    const currentPendingRequestIds = [...pendingRequestIds.current];
+
+    // update pending request ids
+    pendingRequestIds.current = currentPendingRequestIds.includes(id)
+      ? currentPendingRequestIds.filter((p) => p !== id) // remove id if already there
+      : [...currentPendingRequestIds, id]; // add pending request id
+
+    // renew abort controller
+    taskListRequestController.current = new AbortController();
   };
 
   useEffect(() => {
@@ -78,9 +98,14 @@ const AppPage = ({ clientData, tasks, appConfig }: AppPagePros) => {
       return;
     }
 
+    const timeout =
+      dbType === 'google_sheet'
+        ? GOOGLESHEET_DATA_REFRESH_TIMEOUT
+        : AIRTABLE_DATA_REFRESH_TIMEOUT;
+
     const interval = setInterval(() => {
       refreshAppData();
-    }, DATA_REFRESH_TIMEOUT);
+    }, timeout);
 
     // when the component unmounts, clear the interval
     return () => {
@@ -200,6 +225,10 @@ export async function getServerSideProps(context) {
     defaultChannelType: appSetupData.defaultChannelType || null,
   };
 
+  const dbType: DBType = isDBUsingGoogleSheets(appSetupData)
+    ? 'google_sheet'
+    : 'airtable';
+
   console.info('loaded tasks', tasks.length);
 
   // -----------PROPS-----------------------------
@@ -208,6 +237,7 @@ export async function getServerSideProps(context) {
       clientData,
       tasks: JSON.parse(JSON.stringify(tasks)),
       appConfig,
+      dbType,
     },
   };
 }

@@ -7,26 +7,40 @@ import {
   updateRecord,
 } from '../../../utils/airtableUtils';
 import { AppContextType } from '../../../utils/appContext';
+import {
+  addRecordInSheet,
+  getRecordsFromSheet,
+  isDBUsingGoogleSheets,
+  updateRecordInSheet,
+} from '../../../utils/googleSheetUtils';
 
 export const loadAppData = async (
   appData: AppContextType,
   clientId: string,
 ) => {
-  const baseConstructor = getAirtableClient(
-    appData.airtableApiKey,
-    appData.baseId,
-  );
-  const tableClient = baseConstructor(appData.tableId);
+  if (isDBUsingGoogleSheets(appData)) {
+    const googleSheetRecords = await getRecordsFromSheet(
+      appData.googleSheetId,
+      clientId,
+    );
+    return googleSheetRecords;
+  } else {
+    const baseConstructor = getAirtableClient(
+      appData.airtableApiKey,
+      appData.baseId,
+    );
+    const tableClient = baseConstructor(appData.tableId);
 
-  const airtableRecords = await getAllRecords(
-    tableClient,
-    appData.viewId,
-    `{Assignee ID} = "${clientId}"`,
-  );
+    const airtableRecords = await getAllRecords(
+      tableClient,
+      appData.viewId,
+      `{Assignee ID} = "${clientId}"`,
+    );
 
-  console.info('num airtableRecords', airtableRecords.length);
+    console.info('num airtableRecords', airtableRecords.length);
 
-  return airtableRecords;
+    return airtableRecords;
+  }
 };
 
 /**
@@ -50,6 +64,7 @@ const handleGetData = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(200).json(appData);
   } catch (ex) {
     console.log(ex);
+    res.status(500).json(ex);
   }
 
   return res.status(400).end();
@@ -59,15 +74,24 @@ const handlePostData = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const appSetupData = await fetchConfig(req.query.appId as string);
 
-    // Get the airtable rest client instance
-    const airtableClient = getAirtableClient(
-      appSetupData.airtableApiKey,
-      appSetupData.baseId,
-    );
+    if (isDBUsingGoogleSheets(appSetupData)) {
+      const record = await addRecordInSheet(
+        appSetupData.googleSheetId,
+        req.body,
+      );
+      res.status(200).json(record);
+    } else {
+      delete req.body['Assignee ID']; // we don't need client id for Airtable flow
+      // Get the airtable rest client instance
+      const airtableClient = getAirtableClient(
+        appSetupData.airtableApiKey,
+        appSetupData.baseId,
+      );
 
-    const tableClient = airtableClient(appSetupData.tableId);
-    const record = await addRecord(tableClient, req.body);
-    res.status(200).json(record);
+      const tableClient = airtableClient(appSetupData.tableId);
+      const record = await addRecord(tableClient, req.body);
+      res.status(200).json(record);
+    }
   } catch (ex) {
     console.error('Error updating record', ex);
   }
@@ -78,21 +102,31 @@ const handlePatchData = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const appSetupData = await fetchConfig(req.query.appId as string);
 
-    // Get the airtable rest client instance
-    const airtableClient = getAirtableClient(
-      appSetupData.airtableApiKey,
-      appSetupData.baseId,
-    );
+    if (isDBUsingGoogleSheets(appSetupData)) {
+      const record = await updateRecordInSheet(
+        appSetupData.googleSheetId,
+        req.query.recordId as string,
+        req.body,
+      );
+      res.status(200).json(record);
+    } else {
+      // Get the airtable rest client instance
+      const airtableClient = getAirtableClient(
+        appSetupData.airtableApiKey,
+        appSetupData.baseId,
+      );
 
-    const tableClient = airtableClient(appSetupData.tableId);
-    const record = await updateRecord(
-      tableClient,
-      req.query.recordId as string,
-      req.body,
-    );
-    res.status(200).json(record);
+      const tableClient = airtableClient(appSetupData.tableId);
+      const record = await updateRecord(
+        tableClient,
+        req.query.recordId as string,
+        req.body,
+      );
+      res.status(200).json(record);
+    }
   } catch (ex) {
     console.error('Error updating record', ex);
+    res.status(500).json(ex);
   }
   return res.status(500).end();
 };

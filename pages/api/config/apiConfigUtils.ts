@@ -1,5 +1,4 @@
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { Stream } from "stream";
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
 export const s3Client = new S3Client({
   region: process.env.S3_AWS_REGION,
@@ -10,44 +9,44 @@ export const s3Client = new S3Client({
 });
 
 export const bucketParams = {
-  Bucket: process.env.BUCKET_NAME
+  Bucket: process.env.BUCKET_NAME,
 };
 
 /**
  * Load config for app
  * @param appId app id to load config
- * @returns 
+ * @returns
  */
 export const fetchConfig = async (appId: string) => {
-  console.info('fetchConfig', appId)
   const params = { ...bucketParams, Key: `apps/${appId}/config.json` };
   try {
     const data = await s3Client.send(new GetObjectCommand(params));
     const s3ResponseStream = data.Body as any; // use any convert stream
-    const chunks = []
+    const chunks = [];
 
     for await (const chunk of s3ResponseStream) {
-        chunks.push(chunk)
+      chunks.push(chunk);
     }
 
-    const responseBuffer = Buffer.concat(chunks)
-    return JSON.parse(responseBuffer.toString())
+    const responseBuffer = Buffer.concat(chunks);
+    const config = JSON.parse(responseBuffer.toString());
+    return config;
   } catch (err) {
-    console.log("Error", err);
+    console.log('Error', err);
     return null;
   }
-}
+};
 
 export const fetchUserApps = async (userId: string) => {
   const params = { ...bucketParams, Key: `users/${userId}/apps.json` };
   const data = await s3Client.send(new GetObjectCommand(params));
   const s3ResponseStream = data.Body as any; // use any convert stream
-  const chunks = []
+  const chunks = [];
 
   for await (const chunk of s3ResponseStream) {
-      chunks.push(chunk)
+    chunks.push(chunk);
   }
 
-  const responseBuffer = Buffer.concat(chunks)
-  return JSON.parse(responseBuffer.toString())
-}
+  const responseBuffer = Buffer.concat(chunks);
+  return JSON.parse(responseBuffer.toString());
+};
