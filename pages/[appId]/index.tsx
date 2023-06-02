@@ -12,6 +12,8 @@ import * as _ from 'lodash';
 import { useRouter } from 'next/router';
 import { loadAppData } from '../api/data';
 import { isDBUsingGoogleSheets } from '../../utils/googleSheetUtils';
+import { authOptions } from '../api/auth/[...nextauth]';
+import { getServerSession } from 'next-auth';
 
 type DBType = 'google_sheet' | 'airtable';
 type AppPagePros = {
@@ -138,6 +140,7 @@ export default AppPage;
 
 export async function getServerSideProps(context) {
   let appSetupData: AppContextType;
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   try {
     appSetupData = await fetchConfig(context.query.appId);
@@ -214,7 +217,11 @@ export async function getServerSideProps(context) {
   // -----------GET TASKS----------------
   let tasks: Array<Task> = [];
   try {
-    const airtableData = await loadAppData(appSetupData, clientData?.id);
+    const airtableData = await loadAppData(
+      appSetupData,
+      clientData?.id,
+      session.accessToken,
+    );
     tasks = formatData(clientData, airtableData);
   } catch (error) {
     console.log('error fetching tasks', error);

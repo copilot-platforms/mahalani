@@ -13,15 +13,19 @@ import {
   isDBUsingGoogleSheets,
   updateRecordInSheet,
 } from '../../../utils/googleSheetUtils';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]';
 
 export const loadAppData = async (
   appData: AppContextType,
   clientId: string,
+  accessToken: string,
 ) => {
   if (isDBUsingGoogleSheets(appData)) {
     const googleSheetRecords = await getRecordsFromSheet(
       appData.googleSheetId,
       clientId,
+      accessToken,
     );
     return googleSheetRecords;
   } else {
@@ -59,8 +63,13 @@ const handleGetData = async (req: NextApiRequest, res: NextApiResponse) => {
   // config is found with key information that can be used to query
   // clients backend for data
   try {
+    const session = await getServerSession(req, res, authOptions);
     const appConfigData = await fetchConfig(appId as string);
-    const appData = await loadAppData(appConfigData, assigneeId as string);
+    const appData = await loadAppData(
+      appConfigData,
+      assigneeId as string,
+      session.accessToken,
+    );
     res.status(200).json(appData);
   } catch (ex) {
     console.log(ex);

@@ -29,9 +29,13 @@ export const isDBUsingGoogleSheets = (config: AppContextType) =>
 const getSheet = async (
   sheetId: string,
   subSheetTitle?: string,
+  token?: string,
 ): Promise<GoogleSpreadsheetWorksheet> => {
   const doc = new GoogleSpreadsheet(sheetId);
-  doc.useServiceAccountAuth(GOOGLE_BOT_CREDS); // authenticate the bot user
+
+  if (token) {
+    doc.useRawAccessToken(token); // authenticate user
+  }
   await doc.loadInfo(); // loads document properties and worksheets
   return doc.sheetsByTitle[subSheetTitle || 'Task List']; // get page by it's title
 };
@@ -45,8 +49,9 @@ const getSheet = async (
 export const getRecordsFromSheet = async (
   sheetId: string,
   assigneeId: string,
+  token: string,
 ) => {
-  const sheet = await getSheet(sheetId);
+  const sheet = await getSheet(sheetId, 'Task List', token);
   await sheet.loadHeaderRow();
   const headerValues = sheet.headerValues;
   const rows = await sheet.getRows(); // return the rows from the sheet
