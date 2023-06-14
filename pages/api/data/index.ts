@@ -60,6 +60,7 @@ const handleGetData = async (req: NextApiRequest, res: NextApiResponse) => {
   // clients backend for data
   try {
     const appConfigData = await fetchConfig(appId as string);
+    console.log('Running handle get data');
     const appData = await loadAppData(appConfigData, assigneeId as string);
     res.status(200).json(appData);
   } catch (ex) {

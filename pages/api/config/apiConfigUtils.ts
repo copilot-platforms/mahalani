@@ -18,22 +18,28 @@ export const bucketParams = {
  * @returns
  */
 export const fetchConfig = async (appId: string) => {
+  console.log('Fetching config of appId', appId);
   const params = { ...bucketParams, Key: `apps/${appId}/config.json` };
   try {
     const data = await s3Client.send(new GetObjectCommand(params));
+    console.log('S3 data', data);
     const s3ResponseStream = data.Body as any; // use any convert stream
     const chunks = [];
+    console.log('Initital chunks', chunks);
 
     for await (const chunk of s3ResponseStream) {
       chunks.push(chunk);
     }
 
+    console.log('chunks after for loop', chunks);
     const responseBuffer = Buffer.concat(chunks);
+    console.log('This is the response buffer', responseBuffer);
     const config = JSON.parse(responseBuffer.toString());
     return config;
   } catch (err) {
     console.log('Error', err);
-    return null;
+    throw new Error('Failed fetching the config');
+    // return null;
   }
 };
 

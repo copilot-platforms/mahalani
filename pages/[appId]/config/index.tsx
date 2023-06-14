@@ -54,20 +54,23 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
   };
 
   /* Changes the param name in the URLs displayed after app setup is complete based on the default channel type
-  */
-  const defaultChannel = appSetupData ? appSetupData.defaultChannelType : undefined // set company or client based on user input
-  console.log(`app setup data: ${JSON.stringify(appSetupData)}`)
+   */
+  const defaultChannel = appSetupData
+    ? appSetupData.defaultChannelType
+    : undefined; // set company or client based on user input
 
   const setRowsForDefaultChannelType = () => {
-    let paramName = 'clientId'
-    defaultChannel === 'companies' ? paramName = 'companyId' : null
+    let paramName = 'clientId';
+    defaultChannel === 'companies' ? (paramName = 'companyId') : null;
 
     return (assigneeList || []).map((assignee) => ({
       id: assignee.id,
-      clientName: assignee.givenName ? `${assignee.givenName} ${assignee.familyName}` : assignee.name, // if assignee is client, return full name
+      clientName: assignee.givenName
+        ? `${assignee.givenName} ${assignee.familyName}`
+        : assignee.name, // if assignee is client, return full name
       url: `https://mahalani.vercel.app/${appId}?${paramName}=${assignee.id}`,
     }));
-  }
+  };
 
   return (
     <AppContext.Provider value={appSetupData}>
@@ -79,11 +82,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
               ? 'Your app is setup! You can embed it as a Custom App in Copilot using the following url:'
               : ''
           }
-          link={
-            appSetupData
-              ? `https://mahalani.vercel.app/${appId}`
-              : ''
-          }
+          link={appSetupData ? `https://mahalani.vercel.app/${appId}` : ''}
         >
           <React.Fragment>
             <AppSetup
@@ -99,10 +98,7 @@ const AppSetupPage = ({ appConfig, assignees }: AppSetupPageProps) => {
             />
           )}
           <React.Fragment>
-            <Button
-              onClick={() => signOut()}
-              color="primary"
-            >
+            <Button onClick={() => signOut()} color="primary">
               Log Out
             </Button>
           </React.Fragment>
@@ -124,12 +120,14 @@ export async function getServerSideProps(context) {
     };
   }
 
+  console.log('We are inside config index file');
+
   const { appId } = context.query;
   let appConfig: AppContextType | null = null;
   let assigneeData = null;
   try {
     appConfig = await fetchConfig(appId);
-    assigneeData = await loadAssignees(appConfig)
+    assigneeData = await loadAssignees(appConfig);
   } catch (ex) {
     console.error('error fetching user apps', ex);
   }
