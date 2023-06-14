@@ -174,41 +174,45 @@ export async function getServerSideProps(context) {
     return dataLength;
   };
 
-  if (clientId !== undefined) {
-    const clientRes = await fetch(
-      `https://api-beta.copilot.com/v1/client/${clientId}`,
-      copilotGetReq,
-    );
-
-    clientData = await clientRes.json();
-
-    // call company endpoint if  no data returned for client
-    if (checkDataLength(clientData) <= 0) {
-      const clientCompanyRes = await fetch(
-        `https://api-beta.copilot.com/v1/company/${clientId}`,
+  try {
+    if (clientId !== undefined) {
+      const clientRes = await fetch(
+        `https://api-beta.copilot.com/v1/client/${clientId}`,
         copilotGetReq,
       );
 
-      clientData = await clientCompanyRes.json();
-    }
-  } else if (companyId !== undefined) {
-    const companyRes = await fetch(
-      `https://api-beta.copilot.com/v1/company/${companyId}`,
-      copilotGetReq,
-    );
-    clientData = await companyRes.json();
+      clientData = await clientRes.json();
 
-    // call client endpoint if  no data returned for company
-    if (checkDataLength(clientData) <= 0) {
-      const clientCompanyRes = await fetch(
-        `https://api-beta.copilot.com/v1/client/${companyId}`,
+      // call company endpoint if  no data returned for client
+      if (checkDataLength(clientData) <= 0) {
+        const clientCompanyRes = await fetch(
+          `https://api-beta.copilot.com/v1/company/${clientId}`,
+          copilotGetReq,
+        );
+
+        clientData = await clientCompanyRes.json();
+      }
+    } else if (companyId !== undefined) {
+      const companyRes = await fetch(
+        `https://api-beta.copilot.com/v1/company/${companyId}`,
         copilotGetReq,
       );
+      clientData = await companyRes.json();
 
-      clientData = await clientCompanyRes.json();
+      // call client endpoint if  no data returned for company
+      if (checkDataLength(clientData) <= 0) {
+        const clientCompanyRes = await fetch(
+          `https://api-beta.copilot.com/v1/client/${companyId}`,
+          copilotGetReq,
+        );
+
+        clientData = await clientCompanyRes.json();
+      }
+    } else {
+      console.log('No ID Found');
     }
-  } else {
-    console.log('No ID Found');
+  } catch (error) {
+    console.log('There are some errors fetching client and company');
   }
 
   // -----------GET TASKS----------------
