@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import Layout from '../../components/Layout';
+import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
 import {
   AppContext,
@@ -10,7 +12,6 @@ import * as _ from 'lodash';
 import { useRouter } from 'next/router';
 import { loadAppData } from '../api/data';
 import { isDBUsingGoogleSheets } from '../../utils/googleSheetUtils';
-import dynamic from 'next/dynamic';
 
 type DBType = 'google_sheet' | 'airtable';
 type AppPagePros = {
@@ -45,11 +46,30 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
  * @returns
  */
 
-const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
-  const TodoList = dynamic(() => import('../../components/TodoList'));
-  const Layout = dynamic(() => import('../../components/Layout'));
+const AppPage = () => {
   const router = useRouter();
-  const { appId } = router.query;
+
+  const appConfig = {
+    id: 'kMTauEM5Nu',
+    googleSheetId: '1Jyv2l-l3bhaNdO5tmVhl2ztRfepkYo95tPHIVleZbhE',
+    copilotApiKey: 'YaQdkTDzBg9hUaNL9Je4yakl9QKY6JpE2MVYt74F',
+    baseId: 'appVuPZwGYtKvHkBg',
+    tableId: 'tbljfdjv8mzLJidw7',
+    viewId: 'viwszcxvLgrDRXTkj',
+    defaultChannelType: 'clients',
+    controls: {
+      allowAddingItems: true,
+      allowUpdatingStatus: true,
+      allowingUpdatingDetails: true,
+    },
+  };
+  const dbType = 'google_sheet';
+  const tasks = [];
+  const { appId, clientId, companyId } = router.query;
+
+  const clientData = {
+    id: clientId || companyId,
+  };
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
   const pendingRequestIds = useRef([]);
   const taskListRequestController = useRef(new AbortController());
@@ -114,9 +134,9 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
     };
   }, []);
 
-  const clientFullName = clientData
-    ? `${clientData.givenName} ${clientData.familyName}`
-    : '';
+  // const clientFullName = clientData
+  //   ? `${clientData.givenName} ${clientData.familyName}`
+  //   : '';
 
   return (
     <AppContext.Provider value={appConfig}>
@@ -137,112 +157,112 @@ export default AppPage;
 -------------SERVER-------------------
 */
 
-export async function getServerSideProps(context) {
-  let appSetupData: AppContextType;
+// export async function getServerSideProps(context) {
+//   let appSetupData: AppContextType;
 
-  try {
-    appSetupData = await fetchConfig(context.query.appId);
-  } catch (error) {
-    console.log('error fetching config', error);
-  }
+//   try {
+//     appSetupData = await fetchConfig(context.query.appId);
+//   } catch (error) {
+//     console.log('error fetching config', error);
+//   }
 
-  // HEADERS
-  const copilotGetReq = {
-    // method: 'GET',
-    headers: {
-      'X-API-KEY': appSetupData.copilotApiKey,
-      'Content-Type': 'application/json',
-    },
-  };
+//   // HEADERS
+//   const copilotGetReq = {
+//     // method: 'GET',
+//     headers: {
+//       'X-API-KEY': appSetupData.copilotApiKey,
+//       'Content-Type': 'application/json',
+//     },
+//   };
 
-  let clientData = null;
+//   let clientData = null;
 
-  // -------------COPILOT API-------------------
+//   // -------------COPILOT API-------------------
 
-  // SET COPILOT CLIENT OR COMPANY ID FROM PARAMS
+//   // SET COPILOT CLIENT OR COMPANY ID FROM PARAMS
 
-  const clientId = context.query.clientId;
+//   const clientId = context.query.clientId;
 
-  const companyId = context.query.companyId;
+//   const companyId = context.query.companyId;
 
-  //check if data returned
-  const checkDataLength = (dataObj) => {
-    let dataLength;
-    dataObj.data
-      ? (dataLength = Object.keys(dataObj.data).length)
-      : Object.keys(dataObj).length;
-    dataObj.code === 'not_found' ? (dataLength = 0) : null;
-    return dataLength;
-  };
+//   //check if data returned
+//   const checkDataLength = (dataObj) => {
+//     let dataLength;
+//     dataObj.data
+//       ? (dataLength = Object.keys(dataObj.data).length)
+//       : Object.keys(dataObj).length;
+//     dataObj.code === 'not_found' ? (dataLength = 0) : null;
+//     return dataLength;
+//   };
 
-  try {
-    if (clientId !== undefined) {
-      const clientRes = await fetch(
-        `https://api-beta.copilot.com/v1/client/${clientId}`,
-        copilotGetReq,
-      );
+//   try {
+//     if (clientId !== undefined) {
+//       const clientRes = await fetch(
+//         `https://api-beta.copilot.com/v1/client/${clientId}`,
+//         copilotGetReq,
+//       );
 
-      clientData = await clientRes.json();
+//       clientData = await clientRes.json();
 
-      // call company endpoint if  no data returned for client
-      if (checkDataLength(clientData) <= 0) {
-        const clientCompanyRes = await fetch(
-          `https://api-beta.copilot.com/v1/company/${clientId}`,
-          copilotGetReq,
-        );
+//       // call company endpoint if  no data returned for client
+//       if (checkDataLength(clientData) <= 0) {
+//         const clientCompanyRes = await fetch(
+//           `https://api-beta.copilot.com/v1/company/${clientId}`,
+//           copilotGetReq,
+//         );
 
-        clientData = await clientCompanyRes.json();
-      }
-    } else if (companyId !== undefined) {
-      const companyRes = await fetch(
-        `https://api-beta.copilot.com/v1/company/${companyId}`,
-        copilotGetReq,
-      );
-      clientData = await companyRes.json();
+//         clientData = await clientCompanyRes.json();
+//       }
+//     } else if (companyId !== undefined) {
+//       const companyRes = await fetch(
+//         `https://api-beta.copilot.com/v1/company/${companyId}`,
+//         copilotGetReq,
+//       );
+//       clientData = await companyRes.json();
 
-      // call client endpoint if  no data returned for company
-      if (checkDataLength(clientData) <= 0) {
-        const clientCompanyRes = await fetch(
-          `https://api-beta.copilot.com/v1/client/${companyId}`,
-          copilotGetReq,
-        );
+//       // call client endpoint if  no data returned for company
+//       if (checkDataLength(clientData) <= 0) {
+//         const clientCompanyRes = await fetch(
+//           `https://api-beta.copilot.com/v1/client/${companyId}`,
+//           copilotGetReq,
+//         );
 
-        clientData = await clientCompanyRes.json();
-      }
-    } else {
-      console.log('No ID Found');
-    }
-  } catch (error) {
-    console.log('There are some errors fetching client and company');
-  }
+//         clientData = await clientCompanyRes.json();
+//       }
+//     } else {
+//       console.log('No ID Found');
+//     }
+//   } catch (error) {
+//     console.log('There are some errors fetching client and company');
+//   }
 
-  // -----------GET TASKS----------------
-  let tasks: Array<Task> = [];
-  try {
-    const airtableData = await loadAppData(appSetupData, clientData?.id);
-    tasks = formatData(clientData, airtableData);
-  } catch (error) {
-    console.log('error fetching tasks', error);
-  }
+//   // -----------GET TASKS----------------
+//   let tasks: Array<Task> = [];
+//   try {
+//     const airtableData = await loadAppData(appSetupData, clientData?.id);
+//     tasks = formatData(clientData, airtableData);
+//   } catch (error) {
+//     console.log('error fetching tasks', error);
+//   }
 
-  const appConfig = {
-    controls: appSetupData.controls || '',
-    defaultChannelType: appSetupData.defaultChannelType || null,
-  };
+//   const appConfig = {
+//     controls: appSetupData.controls || '',
+//     defaultChannelType: appSetupData.defaultChannelType || null,
+//   };
 
-  const dbType: DBType = isDBUsingGoogleSheets(appSetupData)
-    ? 'google_sheet'
-    : 'airtable';
+//   const dbType: DBType = isDBUsingGoogleSheets(appSetupData)
+//     ? 'google_sheet'
+//     : 'airtable';
 
-  console.info('loaded tasks', tasks.length);
+//   console.info('loaded tasks', tasks.length);
 
-  // -----------PROPS-----------------------------
-  return {
-    props: {
-      clientData,
-      tasks: JSON.parse(JSON.stringify(tasks)),
-      appConfig,
-      dbType,
-    },
-  };
-}
+//   // -----------PROPS-----------------------------
+//   return {
+//     props: {
+//       clientData,
+//       tasks: JSON.parse(JSON.stringify(tasks)),
+//       appConfig,
+//       dbType,
+//     },
+//   };
+// }
