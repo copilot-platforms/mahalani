@@ -68,8 +68,8 @@ const AppPage = () => {
   const { appId, clientId, companyId } = router.query;
 
   const clientData = {
-    id: clientId || companyId,
-  };
+    id: clientId || companyId || '',
+  } as AssigneeDataType;
   const [taskLists, setTaskList] = useState<Task[]>(tasks);
   const pendingRequestIds = useRef([]);
   const taskListRequestController = useRef(new AbortController());
