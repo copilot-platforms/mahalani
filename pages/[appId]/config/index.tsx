@@ -120,8 +120,6 @@ export async function getServerSideProps(context) {
     };
   }
 
-  console.log('We are inside config index file');
-
   const { appId } = context.query;
   let appConfig: AppContextType | null = null;
   let assigneeData = null;
