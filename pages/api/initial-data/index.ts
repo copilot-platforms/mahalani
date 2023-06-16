@@ -11,12 +11,15 @@ const handleLoadInitialData = async (
   res: NextApiResponse,
 ) => {
   let appSetupData: AppContextType;
+  console.log('start load data')
 
+  console.time('fetchConfig')
   try {
     appSetupData = await fetchConfig(req.query.appId as string);
   } catch (error) {
     console.log('error fetching config', error);
   }
+  console.timeEnd('fetchConfig')
 
   // HEADERS
   const copilotGetReq = {
@@ -32,7 +35,7 @@ const handleLoadInitialData = async (
   // -------------COPILOT API-------------------
 
   // SET COPILOT CLIENT OR COMPANY ID FROM PARAMS
-
+  console.time('copilotFetch')
   const clientId = req.query.clientId;
 
   const companyId = req.query.companyId;
@@ -83,8 +86,10 @@ const handleLoadInitialData = async (
   } else {
     console.log('No ID Found');
   }
+  console.timeEnd('copilotFetch')
 
   // -----------GET TASKS----------------
+  console.time('loadAppData')
   let tasks: Array<Task> = [];
   try {
     const airtableData = await loadAppData(appSetupData, clientData?.id);
@@ -92,6 +97,7 @@ const handleLoadInitialData = async (
   } catch (error) {
     console.log('error fetching tasks', error);
   }
+  console.timeEnd('loadAppData')
 
   const appConfig = {
     controls: appSetupData.controls || '',
@@ -114,6 +120,7 @@ const handleLoadInitialData = async (
 };
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
+  console.log('received request')
   switch (req.method) {
     case 'GET':
       return handleLoadInitialData(req, res);
