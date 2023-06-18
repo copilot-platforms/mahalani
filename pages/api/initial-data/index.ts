@@ -6,6 +6,8 @@ import { loadAppData } from '../data';
 import { DBType, formatData } from '../../[appId]';
 import { isDBUsingGoogleSheets } from '../../../utils/googleSheetUtils';
 
+console.time('initial data request start')
+
 const handleLoadInitialData = async (
   req: NextApiRequest,
   res: NextApiResponse,
@@ -120,7 +122,7 @@ const handleLoadInitialData = async (
 };
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('received request')
+  console.timeEnd('initial data request start')
   switch (req.method) {
     case 'GET':
       return handleLoadInitialData(req, res);
