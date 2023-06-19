@@ -9,6 +9,8 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    background: '#00000020',
+    zIndex: 3, // loader should appear above all components
   },
 }));
 

@@ -47,7 +47,14 @@ export const formatData = (
 const AppPage = ({}: AppPagePros) => {
   const [initialData, setInitialData] = useState<AppPagePros>({
     clientData: null,
-    appConfig: null,
+    appConfig: {
+      controls: {
+        allowAddingItems: true,
+        allowingUpdatingDetails: false,
+        allowUpdatingStatus: false,
+      },
+      defaultChannelType: 'client',
+    },
     dbType: 'airtable',
     tasks: [],
   });
@@ -151,13 +158,10 @@ const AppPage = ({}: AppPagePros) => {
     };
   }, [appId, clientData, dbType]);
 
-  if (loading) {
-    return <PageLoader />;
-  }
-
   return (
     <AppContext.Provider value={appConfig}>
       <Layout title="Custom App - Task Management">
+        {loading ? <PageLoader /> : null}
         <TodoList
           title={``}
           tasks={taskLists}
