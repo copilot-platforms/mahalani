@@ -86,7 +86,6 @@ const handleLoadInitialData = async (
     console.log('No ID Found');
   }
   console.timeEnd('copilotFetch');
-
   const appConfig = {
     controls: appSetupData.controls || '',
     defaultChannelType: appSetupData.defaultChannelType || null,

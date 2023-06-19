@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout';
-import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
 import { AppContext, ClientAppConfig } from '../../utils/appContext';
-import * as _ from 'lodash';
 import { useRouter } from 'next/router';
 import { PageLoader } from '../../components/PageLoader';
+import dynamic from 'next/dynamic';
+
+const TodoList = dynamic(() => import('../../components/TodoList'));
 
 export type DBType = 'google_sheet' | 'airtable';
 type AppPagePros = {
