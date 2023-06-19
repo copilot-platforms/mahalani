@@ -1,27 +1,34 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { AppContextType } from '../../../utils/appContext';
 import { fetchConfig } from '../config/apiConfigUtils';
-import { Task } from '../../../components/types';
-import { loadAppData } from '../data';
-import { DBType, formatData } from '../../[appId]';
+import { DBType } from '../../[appId]';
 import { isDBUsingGoogleSheets } from '../../../utils/googleSheetUtils';
 
-console.time('initial data request start')
+console.time('initial data request start');
+
+//check if data returned
+const checkDataLength = (dataObj) => {
+  let dataLength;
+  dataObj.data
+    ? (dataLength = Object.keys(dataObj.data).length)
+    : Object.keys(dataObj).length;
+  dataObj.code === 'not_found' ? (dataLength = 0) : null;
+  return dataLength;
+};
 
 const handleLoadInitialData = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
   let appSetupData: AppContextType;
-  console.log('start load data')
 
-  console.time('fetchConfig')
+  console.time('fetchConfig');
   try {
     appSetupData = await fetchConfig(req.query.appId as string);
   } catch (error) {
     console.log('error fetching config', error);
   }
-  console.timeEnd('fetchConfig')
+  console.timeEnd('fetchConfig');
 
   // HEADERS
   const copilotGetReq = {
@@ -37,20 +44,10 @@ const handleLoadInitialData = async (
   // -------------COPILOT API-------------------
 
   // SET COPILOT CLIENT OR COMPANY ID FROM PARAMS
-  console.time('copilotFetch')
+  console.time('copilotFetch');
   const clientId = req.query.clientId;
 
   const companyId = req.query.companyId;
-
-  //check if data returned
-  const checkDataLength = (dataObj) => {
-    let dataLength;
-    dataObj.data
-      ? (dataLength = Object.keys(dataObj.data).length)
-      : Object.keys(dataObj).length;
-    dataObj.code === 'not_found' ? (dataLength = 0) : null;
-    return dataLength;
-  };
 
   if (clientId !== undefined) {
     const clientRes = await fetch(
@@ -88,18 +85,7 @@ const handleLoadInitialData = async (
   } else {
     console.log('No ID Found');
   }
-  console.timeEnd('copilotFetch')
-
-  // -----------GET TASKS----------------
-  console.time('loadAppData')
-  let tasks: Array<Task> = [];
-  try {
-    const airtableData = await loadAppData(appSetupData, clientData?.id);
-    tasks = formatData(clientData, airtableData);
-  } catch (error) {
-    console.log('error fetching tasks', error);
-  }
-  console.timeEnd('loadAppData')
+  console.timeEnd('copilotFetch');
 
   const appConfig = {
     controls: appSetupData.controls || '',
@@ -110,19 +96,16 @@ const handleLoadInitialData = async (
     ? 'google_sheet'
     : 'airtable';
 
-  console.info('loaded tasks', tasks.length);
-
   // -----------PROPS-----------------------------
   res.json({
     clientData,
-    tasks: JSON.parse(JSON.stringify(tasks)),
     appConfig,
     dbType,
   });
 };
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
-  console.timeEnd('initial data request start')
+  console.timeEnd('initial data request start');
   switch (req.method) {
     case 'GET':
       return handleLoadInitialData(req, res);

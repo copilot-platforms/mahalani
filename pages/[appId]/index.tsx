@@ -59,7 +59,7 @@ const AppPage = ({}: AppPagePros) => {
   const pendingRequestIds = useRef([]);
   const taskListRequestController = useRef(new AbortController());
 
-  const refreshAppData = async () => {
+  const refreshAppData = async (data: AssigneeDataType) => {
     try {
       // check if there is any pending request
       // if we have pending requests then don't refresh the app data
@@ -69,7 +69,7 @@ const AppPage = ({}: AppPagePros) => {
 
       // fetching latest task
       const getAppDataResult = await fetch(
-        `/api/data?appId=${appId}&assigneeId=${clientData?.id}`,
+        `/api/data?appId=${appId}&assigneeId=${data?.id}`,
         {
           method: 'GET',
           signal: taskListRequestController.current.signal,
@@ -77,7 +77,7 @@ const AppPage = ({}: AppPagePros) => {
       );
       console.info('getAppDataResult', getAppDataResult);
       const appData = await getAppDataResult.json();
-      const tasks = formatData(clientData, appData);
+      const tasks = formatData(data, appData);
 
       setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
     } catch (error) {
@@ -100,6 +100,7 @@ const AppPage = ({}: AppPagePros) => {
   };
 
   const loadInitialData = async () => {
+    console.time('Client initial data load');
     setLoading(true);
     const query = new URLSearchParams({
       appId: appId as string,
@@ -114,13 +115,14 @@ const AppPage = ({}: AppPagePros) => {
         },
       });
       const data = await res.json();
+      await refreshAppData(data.clientData);
       setInitialData(data);
-      setTaskList(data?.tasks || []);
     } catch (error) {
       console.error('Error fetching initial data', error);
     } finally {
       setLoading(false);
     }
+    console.timeEnd('Client initial data load');
   };
 
   useEffect(() => {
@@ -139,7 +141,7 @@ const AppPage = ({}: AppPagePros) => {
         : AIRTABLE_DATA_REFRESH_TIMEOUT;
 
     const interval = setInterval(() => {
-      refreshAppData();
+      refreshAppData(clientData);
     }, timeout);
 
     // when the component unmounts, clear the interval
@@ -147,10 +149,6 @@ const AppPage = ({}: AppPagePros) => {
       clearInterval(interval);
     };
   }, [appId, clientData, dbType]);
-
-  const clientFullName = clientData
-    ? `${clientData.givenName} ${clientData.familyName}`
-    : '';
 
   if (loading) {
     return <PageLoader />;
