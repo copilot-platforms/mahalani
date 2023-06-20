@@ -1,22 +1,16 @@
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout';
-import TodoList from '../../components/TodoList';
 import { AssigneeDataType, Task } from '../../components/types';
-import {
-  AppContext,
-  AppContextType,
-  ClientAppConfig,
-} from '../../utils/appContext';
-import { fetchConfig } from '../api/config/apiConfigUtils';
-import * as _ from 'lodash';
+import { AppContext, ClientAppConfig } from '../../utils/appContext';
 import { useRouter } from 'next/router';
-import { loadAppData } from '../api/data';
-import { isDBUsingGoogleSheets } from '../../utils/googleSheetUtils';
+import { PageLoader } from '../../components/PageLoader';
+import dynamic from 'next/dynamic';
 
-type DBType = 'google_sheet' | 'airtable';
+const TodoList = dynamic(() => import('../../components/TodoList'));
+
+export type DBType = 'google_sheet' | 'airtable';
 type AppPagePros = {
   clientData: AssigneeDataType | null;
-  tasks: Array<Task>;
   appConfig: ClientAppConfig;
   dbType: DBType;
 };
@@ -24,8 +18,11 @@ type AppPagePros = {
 const AIRTABLE_DATA_REFRESH_TIMEOUT = 3000;
 const GOOGLESHEET_DATA_REFRESH_TIMEOUT = 6000;
 
-const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
-  const formattedData: Array<Task> = airtableRecords.map((record, rank) => ({
+export const formatData = (
+  clientData: AssigneeDataType,
+  airtableRecords: any,
+) => {
+  const formattedData: Array<Task> = airtableRecords?.map((record, rank) => ({
     id: record.id,
     title: record.fields.Name || '',
     status: record.fields.Status,
@@ -46,14 +43,34 @@ const formatData = (clientData: AssigneeDataType, airtableRecords: any) => {
  * @returns
  */
 
-const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
+const AppPage = () => {
+  const [initialData, setInitialData] = useState<AppPagePros>({
+    clientData: null,
+    appConfig: {
+      controls: {
+        allowAddingItems: true,
+        allowingUpdatingDetails: false,
+        allowUpdatingStatus: false,
+      },
+      defaultChannelType: 'client',
+    },
+    dbType: 'airtable',
+  });
+  const [loading, setLoading] = useState(true);
+  const { clientData, appConfig, dbType } = initialData;
+
   const router = useRouter();
-  const { appId } = router.query;
-  const [taskLists, setTaskList] = useState<Task[]>(tasks);
+  const { appId, clientId, companyId } = router.query;
+  const [taskLists, setTaskList] = useState<Task[]>([]);
   const pendingRequestIds = useRef([]);
   const taskListRequestController = useRef(new AbortController());
 
-  const refreshAppData = async () => {
+  /**
+   * Method to fetch tasks
+   * @param assigneeData client data
+   * @returns
+   */
+  const fetchTaskList = async (assigneeData: AssigneeDataType) => {
     try {
       // check if there is any pending request
       // if we have pending requests then don't refresh the app data
@@ -63,7 +80,7 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
 
       // fetching latest task
       const getAppDataResult = await fetch(
-        `/api/data?appId=${appId}&assigneeId=${clientData?.id}`,
+        `/api/data?appId=${appId}&assigneeId=${assigneeData?.id}`,
         {
           method: 'GET',
           signal: taskListRequestController.current.signal,
@@ -71,7 +88,7 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
       );
       console.info('getAppDataResult', getAppDataResult);
       const appData = await getAppDataResult.json();
-      const tasks = formatData(clientData, appData);
+      const tasks = formatData(assigneeData, appData);
 
       setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
     } catch (error) {
@@ -93,8 +110,44 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
     taskListRequestController.current = new AbortController();
   };
 
+  /**
+   * Method of fetch intial data i.e app config, client data and dbType
+   * This data is required to run the app
+   */
+  const loadInitialData = async () => {
+    setLoading(true);
+    const query = new URLSearchParams({
+      appId: appId as string,
+      clientId: clientId as string,
+      companyId: companyId as string,
+    });
+    try {
+      const res = await fetch('/api/initial-data?' + query, {
+        method: 'GET',
+        headers: {
+          'Content-type': 'application/json',
+        },
+      });
+      const data = await res.json();
+      if (data) {
+        await fetchTaskList(data.clientData); // fetch task once initial data is loaded
+        setInitialData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching initial data', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // load initial data
   useEffect(() => {
-    if (!clientData) {
+    if (!appId) return;
+    loadInitialData();
+  }, [appId]);
+
+  useEffect(() => {
+    if (!clientData || !appId) {
       return;
     }
 
@@ -104,22 +157,19 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
         : AIRTABLE_DATA_REFRESH_TIMEOUT;
 
     const interval = setInterval(() => {
-      refreshAppData();
+      fetchTaskList(clientData);
     }, timeout);
 
     // when the component unmounts, clear the interval
     return () => {
       clearInterval(interval);
     };
-  }, []);
-
-  const clientFullName = clientData
-    ? `${clientData.givenName} ${clientData.familyName}`
-    : '';
+  }, [appId, clientData, dbType]);
 
   return (
     <AppContext.Provider value={appConfig}>
       <Layout title="Custom App - Task Management">
+        {loading ? <PageLoader /> : null}
         <TodoList
           title={``}
           tasks={taskLists}
@@ -131,113 +181,3 @@ const AppPage = ({ clientData, tasks, appConfig, dbType }: AppPagePros) => {
 };
 
 export default AppPage;
-
-/* 
--------------SERVER-------------------
-*/
-
-export async function getServerSideProps(context) {
-  let appSetupData: AppContextType;
-
-  try {
-    appSetupData = await fetchConfig(context.query.appId);
-  } catch (error) {
-    console.log('error fetching config', error);
-  }
-
-  // HEADERS
-  const copilotGetReq = {
-    // method: 'GET',
-    headers: {
-      'X-API-KEY': appSetupData.copilotApiKey,
-      'Content-Type': 'application/json',
-    },
-  };
-
-  let clientData = null;
-
-  // -------------COPILOT API-------------------
-
-  // SET COPILOT CLIENT OR COMPANY ID FROM PARAMS
-
-  const clientId = context.query.clientId;
-
-  const companyId = context.query.companyId;
-
-  //check if data returned
-  const checkDataLength = (dataObj) => {
-    let dataLength;
-    dataObj.data
-      ? (dataLength = Object.keys(dataObj.data).length)
-      : Object.keys(dataObj).length;
-    dataObj.code === 'not_found' ? (dataLength = 0) : null;
-    return dataLength;
-  };
-
-  if (clientId !== undefined) {
-    const clientRes = await fetch(
-      `https://api-beta.copilot.com/v1/client/${clientId}`,
-      copilotGetReq,
-    );
-
-    clientData = await clientRes.json();
-
-    // call company endpoint if  no data returned for client
-    if (checkDataLength(clientData) <= 0) {
-      const clientCompanyRes = await fetch(
-        `https://api-beta.copilot.com/v1/company/${clientId}`,
-        copilotGetReq,
-      );
-
-      clientData = await clientCompanyRes.json();
-    }
-  } else if (companyId !== undefined) {
-    const companyRes = await fetch(
-      `https://api-beta.copilot.com/v1/company/${companyId}`,
-      copilotGetReq,
-    );
-    clientData = await companyRes.json();
-
-    // call client endpoint if  no data returned for company
-    if (checkDataLength(clientData) <= 0) {
-      const clientCompanyRes = await fetch(
-        `https://api-beta.copilot.com/v1/client/${companyId}`,
-        copilotGetReq,
-      );
-
-      clientData = await clientCompanyRes.json();
-    }
-  } else {
-    console.log('No ID Found');
-  }
-
-  // -----------GET TASKS----------------
-  let tasks: Array<Task> = [];
-  try {
-    const airtableData = await loadAppData(appSetupData, clientData?.id);
-    tasks = formatData(clientData, airtableData);
-  } catch (error) {
-    console.log('error fetching tasks', error);
-  }
-
-  const appConfig = {
-    controls: appSetupData.controls || '',
-    defaultChannelType: appSetupData.defaultChannelType || null,
-  };
-
-  const dbType: DBType = isDBUsingGoogleSheets(appSetupData)
-    ? 'google_sheet'
-    : 'airtable';
-
-  console.info('loaded tasks', tasks.length);
-
-  // -----------PROPS-----------------------------
-  return {
-    props: {
-      clientData,
-      tasks: JSON.parse(JSON.stringify(tasks)),
-      appConfig,
-      dbType,
-    },
-  };
-}

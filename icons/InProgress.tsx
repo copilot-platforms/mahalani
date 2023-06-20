@@ -17,7 +17,7 @@ export const InProgressIcon = (props: SvgIconProps) => {
         height="12"
         rx="6"
         stroke="#f2c94c"
-        stroke-width="2"
+        strokeWidth="2"
         fill="none"
       ></rect>
       <path

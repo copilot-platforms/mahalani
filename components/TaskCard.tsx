@@ -203,6 +203,7 @@ const TaskCard = ({
       >
         {Object.entries(TaskStatus).map(([key, value]) => (
           <MenuItem
+            key={value}
             onClick={() => {
               handleStatusChange({
                 target: { value: value },
@@ -236,6 +237,7 @@ const TaskCard = ({
       >
         {Object.entries(Priority).map(([key, value]) => (
           <MenuItem
+            key={key}
             onClick={() => {
               // setTaskPriority(value);
               setCardMenuAnchorEl(null);

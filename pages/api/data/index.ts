@@ -18,28 +18,32 @@ export const loadAppData = async (
   appData: AppContextType,
   clientId: string,
 ) => {
-  if (isDBUsingGoogleSheets(appData)) {
-    const googleSheetRecords = await getRecordsFromSheet(
-      appData.googleSheetId,
-      clientId,
-    );
-    return googleSheetRecords;
-  } else {
-    const baseConstructor = getAirtableClient(
-      appData.airtableApiKey,
-      appData.baseId,
-    );
-    const tableClient = baseConstructor(appData.tableId);
+  try {
+    if (isDBUsingGoogleSheets(appData)) {
+      const googleSheetRecords = await getRecordsFromSheet(
+        appData.googleSheetId,
+        clientId,
+      );
+      return googleSheetRecords;
+    } else {
+      const baseConstructor = getAirtableClient(
+        appData.airtableApiKey,
+        appData.baseId,
+      );
+      const tableClient = baseConstructor(appData.tableId);
 
-    const airtableRecords = await getAllRecords(
-      tableClient,
-      appData.viewId,
-      `{Assignee ID} = "${clientId}"`,
-    );
+      const airtableRecords = await getAllRecords(
+        tableClient,
+        appData.viewId,
+        `{Assignee ID} = "${clientId}"`,
+      );
 
-    console.info('num airtableRecords', airtableRecords.length);
+      console.info('num airtableRecords', airtableRecords.length);
 
-    return airtableRecords;
+      return airtableRecords;
+    }
+  } catch (error) {
+    console.log('Error loading the data', error);
   }
 };
 

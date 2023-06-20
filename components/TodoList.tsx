@@ -421,23 +421,21 @@ const TodoList: React.FC<{
                           id,
                           rank,
                         }) => (
-                          <>
-                            <TaskCard
-                              viewMode={listViewMode}
-                              key={title}
-                              title={title}
-                              rank={rank}
-                              assignee={assignee}
-                              description={description}
-                              status={status}
-                              priority={priority}
-                              onTaskOpen={handleTaskOpen}
-                              id={id}
-                              onStatusChange={(newStatus: TaskStatus) =>
-                                handleStatusChanged(id, status, newStatus)
-                              }
-                            />
-                          </>
+                          <TaskCard
+                            viewMode={listViewMode}
+                            key={title}
+                            title={title}
+                            rank={rank}
+                            assignee={assignee}
+                            description={description}
+                            status={status}
+                            priority={priority}
+                            onTaskOpen={handleTaskOpen}
+                            id={id}
+                            onStatusChange={(newStatus: TaskStatus) =>
+                              handleStatusChanged(id, status, newStatus)
+                            }
+                          />
                         ),
                       )}
                       <>
