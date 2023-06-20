@@ -4,8 +4,6 @@ import { fetchConfig } from '../config/apiConfigUtils';
 import { DBType } from '../../[appId]';
 import { isDBUsingGoogleSheets } from '../../../utils/googleSheetUtils';
 
-console.time('initial data request start');
-
 //check if data returned
 const checkDataLength = (dataObj) => {
   let dataLength;
@@ -22,13 +20,11 @@ const handleLoadInitialData = async (
 ) => {
   let appSetupData: AppContextType;
 
-  console.time('fetchConfig');
   try {
     appSetupData = await fetchConfig(req.query.appId as string);
   } catch (error) {
-    console.log('error fetching config', error);
+    console.error('error fetching config', error);
   }
-  console.timeEnd('fetchConfig');
 
   // HEADERS
   const copilotGetReq = {
@@ -44,7 +40,6 @@ const handleLoadInitialData = async (
   // -------------COPILOT API-------------------
 
   // SET COPILOT CLIENT OR COMPANY ID FROM PARAMS
-  console.time('copilotFetch');
   const clientId = req.query.clientId;
 
   const companyId = req.query.companyId;
@@ -85,7 +80,6 @@ const handleLoadInitialData = async (
   } else {
     console.log('No ID Found');
   }
-  console.timeEnd('copilotFetch');
   const appConfig = {
     controls: appSetupData.controls || '',
     defaultChannelType: appSetupData.defaultChannelType || null,
@@ -104,7 +98,6 @@ const handleLoadInitialData = async (
 };
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
-  console.timeEnd('initial data request start');
   switch (req.method) {
     case 'GET':
       return handleLoadInitialData(req, res);

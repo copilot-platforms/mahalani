@@ -11,7 +11,6 @@ const TodoList = dynamic(() => import('../../components/TodoList'));
 export type DBType = 'google_sheet' | 'airtable';
 type AppPagePros = {
   clientData: AssigneeDataType | null;
-  tasks: Array<Task>;
   appConfig: ClientAppConfig;
   dbType: DBType;
 };
@@ -44,7 +43,7 @@ export const formatData = (
  * @returns
  */
 
-const AppPage = ({}: AppPagePros) => {
+const AppPage = () => {
   const [initialData, setInitialData] = useState<AppPagePros>({
     clientData: null,
     appConfig: {
@@ -56,7 +55,6 @@ const AppPage = ({}: AppPagePros) => {
       defaultChannelType: 'client',
     },
     dbType: 'airtable',
-    tasks: [],
   });
   const [loading, setLoading] = useState(true);
   const { clientData, appConfig, dbType } = initialData;
@@ -67,7 +65,12 @@ const AppPage = ({}: AppPagePros) => {
   const pendingRequestIds = useRef([]);
   const taskListRequestController = useRef(new AbortController());
 
-  const refreshAppData = async (data: AssigneeDataType) => {
+  /**
+   * Method to fetch tasks
+   * @param assigneeData client data
+   * @returns
+   */
+  const fetchTaskList = async (assigneeData: AssigneeDataType) => {
     try {
       // check if there is any pending request
       // if we have pending requests then don't refresh the app data
@@ -77,7 +80,7 @@ const AppPage = ({}: AppPagePros) => {
 
       // fetching latest task
       const getAppDataResult = await fetch(
-        `/api/data?appId=${appId}&assigneeId=${data?.id}`,
+        `/api/data?appId=${appId}&assigneeId=${assigneeData?.id}`,
         {
           method: 'GET',
           signal: taskListRequestController.current.signal,
@@ -85,7 +88,7 @@ const AppPage = ({}: AppPagePros) => {
       );
       console.info('getAppDataResult', getAppDataResult);
       const appData = await getAppDataResult.json();
-      const tasks = formatData(data, appData);
+      const tasks = formatData(assigneeData, appData);
 
       setTaskList(tasks.filter((task) => !!task.title)); // filter out tasks with no title
     } catch (error) {
@@ -107,8 +110,11 @@ const AppPage = ({}: AppPagePros) => {
     taskListRequestController.current = new AbortController();
   };
 
+  /**
+   * Method of fetch intial data i.e app config, client data and dbType
+   * This data is required to run the app
+   */
   const loadInitialData = async () => {
-    console.time('Client initial data load');
     setLoading(true);
     const query = new URLSearchParams({
       appId: appId as string,
@@ -123,16 +129,18 @@ const AppPage = ({}: AppPagePros) => {
         },
       });
       const data = await res.json();
-      await refreshAppData(data.clientData);
-      setInitialData(data);
+      if (data) {
+        await fetchTaskList(data.clientData); // fetch task once initial data is loaded
+        setInitialData(data);
+      }
     } catch (error) {
       console.error('Error fetching initial data', error);
     } finally {
       setLoading(false);
     }
-    console.timeEnd('Client initial data load');
   };
 
+  // load initial data
   useEffect(() => {
     if (!appId) return;
     loadInitialData();
@@ -149,7 +157,7 @@ const AppPage = ({}: AppPagePros) => {
         : AIRTABLE_DATA_REFRESH_TIMEOUT;
 
     const interval = setInterval(() => {
-      refreshAppData(clientData);
+      fetchTaskList(clientData);
     }, timeout);
 
     // when the component unmounts, clear the interval
