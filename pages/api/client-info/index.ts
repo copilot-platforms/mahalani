@@ -1,20 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { AppContextType } from '../../../utils/appContext';
 import { fetchConfig } from '../config/apiConfigUtils';
-import { DBType } from '../../[appId]';
-import { isDBUsingGoogleSheets } from '../../../utils/googleSheetUtils';
+import { checkDataLength } from '../initial-data';
 
-//check if data returned
-export const checkDataLength = (dataObj) => {
-  let dataLength;
-  dataObj.data
-    ? (dataLength = Object.keys(dataObj.data).length)
-    : Object.keys(dataObj).length;
-  dataObj.code === 'not_found' ? (dataLength = 0) : null;
-  return dataLength;
-};
 
-const handleLoadInitialData = async (
+const handleLoadClientInfo = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
@@ -80,27 +70,15 @@ const handleLoadInitialData = async (
   } else {
     console.log('No ID Found');
   }
-  const appConfig = {
-    controls: appSetupData.controls || '',
-    defaultChannelType: appSetupData.defaultChannelType || null,
-  };
 
-  const dbType: DBType = isDBUsingGoogleSheets(appSetupData)
-    ? 'google_sheet'
-    : 'airtable';
 
-  // -----------PROPS-----------------------------
-  res.json({
-    clientData,
-    appConfig,
-    dbType,
-  });
+  res.json(clientData);
 };
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {
     case 'GET':
-      return handleLoadInitialData(req, res);
+      return handleLoadClientInfo(req, res);
     default:
       return res.status(405).end();
   }
