@@ -52,7 +52,7 @@ const Forms = () => {
 
   function handleRenderIframe() {
     const defaultEmptyPage = (
-      <EmptyPage title="Capital One" description="Appendix form is displayed to client based on their Collection tag." />
+      <EmptyPage title="Capital One" description="Appendix form is displayed to client based on their Premier or Lifestyle Collection tag." />
     );
 
     if (!clientCollection) {
