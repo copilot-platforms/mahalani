@@ -1,8 +1,13 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { PageLoader } from '../../../components/PageLoader';
-import { LIFESTYLE_COLLECTION, PREMIER_COLLECTION, PageQuery } from '../trainings';
+import {
+  LIFESTYLE_COLLECTION,
+  PREMIER_COLLECTION,
+  PageQuery,
+} from '../trainings';
 import { CollectionForm } from '../../../components/Form';
+import { EmptyPage } from '../../../components/EmptyPage';
 
 const Forms = () => {
   const [loading, setLoading] = useState(true);
@@ -36,7 +41,7 @@ const Forms = () => {
   };
 
   useEffect(() => {
-    if (!appId || !clientId) return;
+    if (!appId) return;
     loadClientInfo();
   }, [clientId, appId]);
 
@@ -46,21 +51,26 @@ const Forms = () => {
       : '';
 
   function handleRenderIframe() {
-    if (clientCollection) {
-      if (clientCollection === LIFESTYLE_COLLECTION) {
+    const defaultEmptyPage = (
+      <EmptyPage title="Poof!" description="No forms are currently assigned." />
+    );
+
+    if (!clientCollection) {
+      return defaultEmptyPage;
+    }
+
+    switch (clientCollection) {
+      case LIFESTYLE_COLLECTION:
         return <CollectionForm formType="lc" />;
-      } else if (clientCollection === PREMIER_COLLECTION) {
+      case PREMIER_COLLECTION:
         return <CollectionForm formType="pc" />;
-      } else {
-        return <h1>No forms are currently assigned.</h1>;
-      }
-    } else {
-      return <h1>No forms are currently assigned.</h1>;
+      default:
+        return defaultEmptyPage;
     }
   }
 
-  if(loading) {
-    return <PageLoader/>
+  if (loading) {
+    return <PageLoader />;
   }
 
   return <div>{handleRenderIframe()}</div>;

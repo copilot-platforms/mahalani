@@ -1,9 +1,8 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import {
-  Training as TrainingIframe,
-} from '../../../components/Training/Training';
+import { Training as TrainingIframe } from '../../../components/Training/Training';
 import { PageLoader } from '../../../components/PageLoader';
+import { EmptyPage } from '../../../components/EmptyPage';
 
 export type PageQuery = {
   appId: string;
@@ -46,7 +45,7 @@ const Training = () => {
   };
 
   useEffect(() => {
-    if (!appId || !clientId) return;
+    if (!appId) return;
     loadClientInfo();
   }, [clientId, appId]);
 
@@ -56,22 +55,29 @@ const Training = () => {
       : '';
 
   function handleRenderIframe() {
-    if (clientCollection) {
-      if (clientCollection === LIFESTYLE_COLLECTION) {
+    const defaultEmptyPage = (
+      <EmptyPage
+        title="Poof!"
+        description="No trainings are currently assigned."
+      />
+    );
+
+    if (!clientCollection) {
+      return defaultEmptyPage;
+    }
+
+    switch (clientCollection) {
+      case LIFESTYLE_COLLECTION:
         return <TrainingIframe trainingType="lc" />;
-      } else if (clientCollection === PREMIER_COLLECTION) {
+      case PREMIER_COLLECTION:
         return <TrainingIframe trainingType="pc" />;
-      } else {
-        return <h1>No trainings are currently assigned.</h1>;
-      }
-    } else {
-      console.log('client not tagged');
-      return <h1>No trainings are currently assigned.</h1>;
+      default:
+        return defaultEmptyPage;
     }
   }
 
-  if(loading) {
-    return <PageLoader/>
+  if (loading) {
+    return <PageLoader />;
   }
 
   return <div>{handleRenderIframe()}</div>;
