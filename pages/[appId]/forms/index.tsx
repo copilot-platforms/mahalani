@@ -52,7 +52,7 @@ const Forms = () => {
 
   function handleRenderIframe() {
     const defaultEmptyPage = (
-      <EmptyPage title="Poof!" description="No forms are currently assigned." />
+      <EmptyPage title="Capital One" description="Appendix form is displayed to client based on their Collection tag." />
     );
 
     if (!clientCollection) {
