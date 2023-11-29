@@ -57,8 +57,8 @@ const Training = () => {
   function handleRenderIframe() {
     const defaultEmptyPage = (
       <EmptyPage
-        title="Poof!"
-        description="No trainings are currently assigned."
+        title="Capital One"
+        description="Front Desk Training is displayed to the client based on their Premier or Lifestyle Collection tag."
       />
     );
 
